@@ -4,6 +4,7 @@ import utils
 import os
 
 bot = botogram.create(config.TELEGRAM_TOKEN)
+bot.lang = "it"
 bot.owner = "@Paolo565"
 bot.before_help = [
     "Questo bot ti da gli orari scolastici dal sito " + utils.get_short_url(config.SCHOOL_WEBSITE)
@@ -28,7 +29,7 @@ def log_request(command, chat, args):
 
 @bot.command('orari')
 def linkorari_command(chat, args):
-    """Ottieni il link alla pagina degli orari"""
+    """Link alla pagina degli orari"""
     log_request('orari', chat, args)
 
     redirect_url = utils.get_redirect_url()
@@ -42,7 +43,7 @@ def linkorari_command(chat, args):
 
 @bot.command('classe')
 def linkclasse_command(chat, args):
-    """Ottieni il link agli orari della classe"""
+    """Mostra gli orari di una classe"""
     log_request('classe', chat, args)
 
     if len(args) == 0:
@@ -55,7 +56,7 @@ def linkclasse_command(chat, args):
 
 @bot.command('prof')
 def linkclasse_command(chat, args):
-    """Ottieni il link agli orari di un professore"""
+    """Mostra gli orari di un professore"""
     log_request('prof', chat, args)
 
     if len(args) == 0:
