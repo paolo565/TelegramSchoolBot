@@ -6,9 +6,7 @@ import os
 bot = botogram.create(config.TELEGRAM_TOKEN)
 bot.lang = "it"
 bot.owner = "@Paolo565"
-bot.before_help = [
-    "Questo bot ti da gli orari scolastici dal sito " + utils.get_short_url(config.SCHOOL_WEBSITE)
-]
+bot.about = "Questo bot ti da gli orari scolastici dal sito " + utils.get_short_url(config.SCHOOL_WEBSITE)
 bot.after_help = [
     "Sai programmare? Questo bot è opensource!",
     "Clicca qui sotto per andare alla pagina github dove puoi vedere il codice e contribuire",
