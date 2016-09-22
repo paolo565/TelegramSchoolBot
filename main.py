@@ -13,7 +13,6 @@ bot.after_help = [
     "https://github.com/paolo565/TelegramSchoolBot",
 ]
 
-
 if not os.path.isdir('./images/classes/'):
     os.makedirs('./images/classes/')
 
@@ -26,65 +25,68 @@ def log_request(command, chat, args):
 
 
 @bot.command('orari')
-def linkorari_command(chat, args):
+def linkorari_command(chat, message, args):
     """Link alla pagina degli orari"""
     log_request('orari', chat, args)
 
     redirect_url = utils.get_redirect_url()
     if redirect_url is None:
         chat.send('Non conosco il link alla pagina degli orari :(\n\nProva a cercarlo tu su:\n' + config.SCHOOL_WEBSITE,
-                  preview=False)
+                  preview=False, reply_to=message)
         return
 
-    chat.send('Gli orari sono:\n' + redirect_url, preview=False)
+    chat.send('Gli orari sono:\n' + redirect_url, preview=False, reply_to=message)
 
 
 @bot.command('classe')
-def linkclasse_command(chat, args):
+def linkclasse_command(chat, message, args):
     """Mostra gli orari di una classe"""
     log_request('classe', chat, args)
 
     if len(args) == 0:
-        chat.send("Fai /classe <Classe>")
+        chat.send("Fai /classe <Classe>", reply_to=message)
         return
 
     name = ' '.join(args)
-    get_class_link(chat, name)
+    get_class_link(chat, message, name)
 
 
 @bot.command('prof')
-def linkclasse_command(chat, args):
+def linkclasse_command(chat, message, args):
     """Mostra gli orari di un professore"""
     log_request('prof', chat, args)
 
     if len(args) == 0:
-        chat.send("Fai /prof <Nome prof scritto nello stesso modo in cui è scritto sul sito>")
+        chat.send("Fai /prof <Nome prof scritto nello stesso modo in cui è scritto sul sito>", reply_to=message)
         return
 
     name = ' '.join(args)
-    get_teacher_link(chat, name)
+    get_teacher_link(chat, message, name)
 
 
-def get_class_link(chat, name):
+def get_class_link(chat, message, name):
     response_name, response_url = utils.get_class_name_and_url(name)
     if response_name is None:
-        chat.send('Non ho trovato la classe: ' + name, preview=False)
+        chat.send('Non ho trovato la classe: ' + name, preview=False, reply_to=message)
         return
 
     file = './images/classes/' + utils.md5(response_name) + '.png'
     utils.link_to_image(response_url, file)
-    chat.send_photo(file, caption='Gli orari della classe {} sono: {}'.format(response_name, response_url))
+    chat.send_photo(file, caption='Gli orari della classe {} sono: {}'.format(response_name, response_url),
+                    reply_to=message)
 
 
-def get_teacher_link(chat, name):
+def get_teacher_link(chat, message, name):
     response_name, response_url = utils.get_teacher_name_and_url(name)
     if response_name is None:
-        chat.send('Non ho trovato il prof: ' + name, preview=False)
+        chat.send('Non ho trovato il prof: ' + name, preview=False, reply_to=message)
         return
 
     file = './images/teachers/' + utils.md5(response_name) + '.png'
     utils.link_to_image(response_url, file)
-    chat.send_photo(file, caption='Gli orari del prof {} sono: {}'.format(response_name, response_url))
+    chat.send_photo(file, caption='Gli orari del prof {} sono: {}'.format(response_name, response_url),
+                    reply_to=message)
+
 
 if __name__ == '__main__':
     utils.update()
