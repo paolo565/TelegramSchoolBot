@@ -142,6 +142,6 @@ def md5(text):
     return h.hexdigest()
 
 
-def get_short_url(url):
+def get_short_domain(url):
     domain = urlparse(url).netloc
     return domain[4:] if domain.startswith('www.') else domain
