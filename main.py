@@ -20,14 +20,15 @@ if not os.path.isdir('./images/teachers/'):
     os.makedirs('./images/teachers/')
 
 
-def log_request(command, chat, args):
-    print((str(chat.id) if chat.username is None else "@" + chat.username) + " - /" + command + " " + ' '.join(args))
+def log_request(command, chat, message, args):
+    print((str(message.sender.id) if message.sender.username is None else "@" + message.sender.username) +
+          ("" if chat.title is None else " - " + chat.title) + " - /" + command + " " + ' '.join(args))
 
 
 @bot.command('orari')
 def linkorari_command(chat, message, args):
     """Link alla pagina degli orari"""
-    log_request('orari', chat, args)
+    log_request('orari', chat, message, args)
 
     redirect_url = utils.get_redirect_url()
     if redirect_url is None:
@@ -41,7 +42,7 @@ def linkorari_command(chat, message, args):
 @bot.command('classe')
 def linkclasse_command(chat, message, args):
     """Mostra gli orari di una classe"""
-    log_request('classe', chat, args)
+    log_request('classe', chat, message, args)
 
     if len(args) == 0:
         chat.send("Fai /classe <Classe>", reply_to=message, syntax='plain')
@@ -54,7 +55,7 @@ def linkclasse_command(chat, message, args):
 @bot.command('prof')
 def linkclasse_command(chat, message, args):
     """Mostra gli orari di un professore"""
-    log_request('prof', chat, args)
+    log_request('prof', chat, message, args)
 
     if len(args) == 0:
         chat.send("Fai /prof <Nome prof scritto come sul sito>", reply_to=message,
