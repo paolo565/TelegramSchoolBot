@@ -210,7 +210,7 @@ def update_file_id(table_name, name, file_id):
     database.commit()
 
 
-def add_blog_subcriber(telegram_uid):
+def add_blog_subscriber(telegram_uid):
     cursor = database.cursor()
     cursor.execute('INSERT INTO blog_subscribers VALUES (?)', (telegram_uid,))
     database.commit()
@@ -218,7 +218,7 @@ def add_blog_subcriber(telegram_uid):
 
 def delete_blog_subscriber(telegram_uid):
     cursor = database.cursor()
-    cursor.execute('DELETE FROM blog_subscribers WHERE telegram_id = ?', (telegram_uid,))
+    cursor.execute('DELETE FROM blog_subscribers WHERE telegram_uid = ?', (telegram_uid,))
     database.commit()
 
 
