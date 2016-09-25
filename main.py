@@ -25,6 +25,11 @@ def log_request(command, chat, message, args):
           ("" if chat.title is None else " - " + chat.title) + " - /" + command + " " + ' '.join(args))
 
 
+@bot.timer(3600)
+def timer():
+    utils.update()
+
+
 @bot.command('orari')
 def linkorari_command(chat, message, args):
     """Link alla pagina degli orari"""
@@ -53,7 +58,7 @@ def linkclasse_command(chat, message, args):
 
 
 @bot.command('prof')
-def linkclasse_command(chat, message, args):
+def linkprof_command(chat, message, args):
     """Mostra gli orari di un professore"""
     log_request('prof', chat, message, args)
 
@@ -123,5 +128,4 @@ def send_cached_photo(chat, file_id, message, caption):
 
 
 if __name__ == '__main__':
-    utils.update()
     bot.run()
