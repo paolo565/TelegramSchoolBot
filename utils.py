@@ -121,6 +121,10 @@ def process_blogs(blogs):
             cursor = database.cursor()
             cursor.execute('INSERT INTO blogs VALUES (?)', (blog[0],))
             database.commit()
+
+            for user in database.execute('SELECT telegram_uid FROM blog_subscribers'):
+                _bot.chat(user[0]).send('È uscita un nuovo articolo sul sito della scuola:\n{}'.format(blog[0]))
+                time.sleep(1)
         except:
             pass
 
@@ -216,7 +220,7 @@ def add_blog_subscriber(telegram_uid):
     database.commit()
 
 
-def delete_blog_subscriber(telegram_uid):
+def remove_blog_subscriber(telegram_uid):
     cursor = database.cursor()
     cursor.execute('DELETE FROM blog_subscribers WHERE telegram_uid = ?', (telegram_uid,))
     database.commit()
