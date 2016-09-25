@@ -33,6 +33,8 @@ def timer():
 @bot.command('iscriviti')
 def subscribe(chat, message, args):
     """Iscriviti alle notifiche"""
+    log_request('iscriviti', chat, message, args)
+
     utils.add_blog_subcriber(chat.id)
     chat.send('Sei stato iscritto con successo a tutte le notifiche della scuola 😀', reply_to=message)
 
@@ -40,6 +42,8 @@ def subscribe(chat, message, args):
 @bot.command('disiscriviti')
 def unsubscribe(chat, message, args):
     """Iscriviti alle notifiche"""
+    log_request('disiscriviti', chat, message, args)
+
     utils.remove_blog_subcriber(chat.id)
     chat.send('Sei stato disiscritto da tutte le notifiche 😞', reply_to=message)
 
