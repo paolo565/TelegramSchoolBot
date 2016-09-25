@@ -30,6 +30,20 @@ def timer():
     utils.update()
 
 
+@bot.command('iscriviti')
+def subscribe(chat, message, args):
+    """Iscriviti alle notifiche"""
+    utils.add_blog_subcriber(chat.id)
+    chat.send('Sei stato iscritto con successo a tutte le notifiche della scuola 😀', reply_to=message)
+
+
+@bot.command('disiscriviti')
+def unsubscribe(chat, message, args):
+    """Iscriviti alle notifiche"""
+    utils.remove_blog_subcriber(chat.id)
+    chat.send('Sei stato disiscritto da tutte le notifiche 😞', reply_to=message)
+
+
 @bot.command('orari')
 def linkorari_command(chat, message, args):
     """Link alla pagina degli orari"""
@@ -128,4 +142,5 @@ def send_cached_photo(chat, file_id, message, caption):
 
 
 if __name__ == '__main__':
+    utils.set_bot(bot)
     bot.run()

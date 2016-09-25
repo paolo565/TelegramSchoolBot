@@ -15,7 +15,17 @@ cursor = database.cursor()
 cursor.execute('CREATE TABLE IF NOT EXISTS classes (name TEXT NOT NULL, url TEXT NOT NULL, file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
 cursor.execute('CREATE TABLE IF NOT EXISTS teachers (name TEXT NOT NULL, url TEXT NOT NULL, file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
 cursor.execute('CREATE TABLE IF NOT EXISTS links (name TEXT NOT NULL, url TEXT NOT NULL, PRIMARY KEY (name));')
+cursor.execute('CREATE TABLE IF NOT EXISTS blogs (link TEXT NOT NULL, PRIMARY KEY (link));')
+cursor.execute('CREATE TABLE IF NOT EXISTS blog_subscribers (telegram_uid INT NOT NULL, PRIMARY KEY (telegram_uid));')
 database.commit()
+
+
+_bot = None
+
+
+def set_bot(bot):
+    global _bot
+    _bot = bot
 
 
 def refresh_main():
@@ -24,13 +34,24 @@ def refresh_main():
         print('Failed to request the main page')
         return None
 
+    orario_lezioni = None
+
     parsed_html = BeautifulSoup(response.text, 'html.parser')
     left_content = parsed_html.find('div', {'id': 'jsn-pleft'})
     links = left_content.find_all('a')
     for link in links:
         text = link.find('span').text
         if 'Orario' in text and 'lezioni' in text:
-            return urllib.parse.urljoin(config.SCHOOL_WEBSITE, link.get('href'))
+            orario_lezioni = urllib.parse.urljoin(config.SCHOOL_WEBSITE, link.get('href'))
+            break
+
+    blogs_list = []
+    blogs = parsed_html.find_all('p', {'class': 'readmore'})
+    for blog in blogs:
+        link = blog.find('a')
+        blogs_list.append((urllib.parse.urljoin(config.SCHOOL_WEBSITE, link.get('href')),))
+
+    return orario_lezioni, blogs_list
 
 
 def refresh_redirect(url):
@@ -94,10 +115,21 @@ def refresh_calendar(url):
     database.commit()
 
 
+def process_blogs(blogs):
+    for blog in blogs:
+        try:
+            cursor = database.cursor()
+            cursor.execute('INSERT INTO blogs VALUES (?)', (blog[0],))
+            database.commit()
+        except:
+            pass
+
+
 def update():
     print('Updating...')
 
-    main_url = refresh_main()
+    main_url, blogs = refresh_main()
+    process_blogs(blogs)
     if main_url is None:
         print('Failed to get the main url')
         return False
@@ -175,6 +207,18 @@ def get_name_url_and_file_id(table_name, name):
 def update_file_id(table_name, name, file_id):
     cursor = database.cursor()
     cursor.execute('UPDATE {} SET file_id = ? WHERE name = ?'.format(table_name), (file_id, name,))
+    database.commit()
+
+
+def add_blog_subcriber(telegram_uid):
+    cursor = database.cursor()
+    cursor.execute('INSERT INTO blog_subscribers VALUES (?)', (telegram_uid,))
+    database.commit()
+
+
+def delete_blog_subscriber(telegram_uid):
+    cursor = database.cursor()
+    cursor.execute('DELETE FROM blog_subscribers WHERE telegram_id = ?', (telegram_uid,))
     database.commit()
 
 
