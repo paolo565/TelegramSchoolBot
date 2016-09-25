@@ -67,27 +67,59 @@ def linkclasse_command(chat, message, args):
 
 
 def get_class_link(chat, message, name):
-    response_name, response_url = utils.get_class_name_and_url(name)
+    response_name, response_url, response_file_id = utils.get_name_url_and_file_id('classes', name)
     if response_name is None:
         chat.send('Non ho trovato la classe: <b>' + name + '</b>', reply_to=message, syntax='HTML')
         return
 
-    file = './images/classes/' + utils.md5(response_name) + '.png'
-    utils.link_to_image(response_url, file)
-    chat.send_photo(file, caption='Classe: {}\nPagina Orari: {}'.format(response_name, response_url),
-                    reply_to=message)
+    file = utils.get_image_file(response_file_id, response_url, response_name, 'classes')
+    if file is None:
+        chat.send('Si è verificato un errore 😢', reply_to=message, syntax='plain')
+        return
+
+    image_type, image = utils.get_image_file(response_file_id, response_url, response_name, 'classes')
+    if image_type is None:
+        chat.send('Si è verificato un errore 😢', reply_to=message, syntax='plain')
+        return
+
+    caption = 'Classe: {}\nPagina Orari: {}'.format(response_name, response_url)
+    if image_type == 'id':
+        # Temporary, because botogram doesn't support sending files by the file_id
+        send_cached_photo(chat, image, message, caption)
+    else:
+        message = chat.send_photo(image, caption=caption, reply_to=message)
+        utils.update_file_id('classes', response_name, message.photo.file_id)
 
 
 def get_teacher_link(chat, message, name):
-    response_name, response_url = utils.get_teacher_name_and_url(name)
+    response_name, response_url, response_file_id = utils.get_name_url_and_file_id('teachers', name)
     if response_name is None:
         chat.send('Non ho trovato il prof: <b>' + name + '</b>', reply_to=message, syntax='HTML')
         return
 
-    file = './images/teachers/' + utils.md5(response_name) + '.png'
-    utils.link_to_image(response_url, file)
-    chat.send_photo(file, caption='Docente: {}\nPagina Orari: {}'.format(response_name, response_url),
-                    reply_to=message)
+    image_type, image = utils.get_image_file(response_file_id, response_url, response_name, 'teachers')
+    if image_type is None:
+        chat.send('Si è verificato un errore 😢', reply_to=message, syntax='plain')
+        return
+
+    caption = 'Docente: {}\nPagina Orari: {}'.format(response_name, response_url)
+    if image_type == 'id':
+        # Temporary, because botogram doesn't support sending files by the file_id
+        send_cached_photo(chat, image, message, caption)
+    else:
+        message = chat.send_photo(image, caption=caption, reply_to=message)
+        utils.update_file_id('teachers', response_name, message.photo.file_id)
+
+
+def send_cached_photo(chat, file_id, message, caption):
+    # Temporary, because botogram doesn't support sending files by the file_id
+    args = {
+        'chat_id': chat.id,
+        'reply_to_message_id': message.message_id,
+        'caption': caption,
+        'photo': file_id
+    }
+    bot.api.call("sendPhoto", args)
 
 
 if __name__ == '__main__':

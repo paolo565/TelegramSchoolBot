@@ -6,12 +6,14 @@ import urllib.parse
 import config
 import subprocess
 import hashlib
+import os
+import time
 
 database = sqlite3.connect('database.db')
 
 cursor = database.cursor()
-cursor.execute('CREATE TABLE IF NOT EXISTS classes (name TEXT NOT NULL, url TEXT NOT NULL, PRIMARY KEY (name));')
-cursor.execute('CREATE TABLE IF NOT EXISTS teachers (name TEXT NOT NULL, url TEXT NOT NULL, PRIMARY KEY (name));')
+cursor.execute('CREATE TABLE IF NOT EXISTS classes (name TEXT NOT NULL, url TEXT NOT NULL, file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
+cursor.execute('CREATE TABLE IF NOT EXISTS teachers (name TEXT NOT NULL, url TEXT NOT NULL, file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
 cursor.execute('CREATE TABLE IF NOT EXISTS links (name TEXT NOT NULL, url TEXT NOT NULL, PRIMARY KEY (name));')
 database.commit()
 
@@ -68,19 +70,27 @@ def refresh_calendar(url):
             classes.append((
                 link.text,
                 urllib.parse.urljoin(url, href),
+                link.text,
+                0,
             ))
         elif href.startswith('Docenti/'):
             teachers.append((
                 link.text,
                 urllib.parse.urljoin(url, href),
+                link.text,
+                0,
             ))
     print('Classes: ', classes)
     print('Teachers: ', teachers)
     cursor = database.cursor()
-    cursor.execute('DELETE FROM classes')
-    cursor.execute('DELETE FROM teachers')
-    cursor.executemany('INSERT INTO classes VALUES (?, ?)', classes)
-    cursor.executemany('INSERT INTO teachers VALUES (?, ?)', teachers)
+    cursor.execute('UPDATE classes SET old = 1')
+    cursor.execute('UPDATE teachers SET old = 1')
+    cursor.executemany('INSERT OR REPLACE INTO classes (name, url, file_id, old) VALUES '
+                       '(?, ?, (SELECT file_id FROM classes WHERE name = ?), ?)', classes)
+    cursor.executemany('INSERT OR REPLACE INTO teachers (name, url, file_id, old) VALUES '
+                       '(?, ?, (SELECT file_id FROM teachers WHERE name = ?), ?)', teachers)
+    cursor.execute('DELETE FROM classes WHERE old = 1')
+    cursor.execute('DELETE FROM teachers WHERE old = 1')
     database.commit()
 
 
@@ -102,8 +112,44 @@ def update():
     refresh_calendar(redirect_url)
 
 
-def link_to_image(link, file_name):
-    subprocess.call(('./wkhtmltox/bin/wkhtmltoimage', link, file_name))
+def get_image_file(file_id, url, name, folder):
+    prefix = './images/' + folder + '/' + md5(name)
+    html_file = prefix + '.html'
+    image_file = prefix + '.png'
+
+    response_type = 'file' if file_id is None else 'id'
+    response_file = image_file if file_id is None else file_id
+
+    if os.path.isfile(html_file) and os.path.isfile(image_file):
+        last_edit = os.path.getmtime(html_file)
+        current_time = time.time()
+
+        if (current_time - 300) < last_edit:
+            return response_type, response_file
+
+    response = requests.request('GET', url)
+    if response.status_code != 200:
+        return None, None
+
+    if os.path.isfile(html_file):
+        with open(html_file, 'r') as f:
+            content = f.read()
+
+        with open(html_file, 'w+') as f:
+            f.write(response.text)
+
+        if md5(content) == md5(response.text):
+            return response_type, response_file
+    else:
+        with open(html_file, 'w+') as f:
+            f.write(response.text)
+
+    if os.path.isfile(image_file):
+        os.remove(image_file)
+
+    subprocess.call(('./wkhtmltox/bin/wkhtmltoimage', html_file, image_file))
+    success = os.path.isfile(image_file)
+    return 'file' if success else None, image_file if success else None
 
 
 def get_redirect_url():
@@ -116,24 +162,20 @@ def get_redirect_url():
     return data[0]
 
 
-def get_class_name_and_url(name):
-    result = database.execute("SELECT name, url FROM classes WHERE name = ?", (name,))
+def get_name_url_and_file_id(table_name, name):
+    result = database.execute("SELECT name, url, file_id FROM {} WHERE name = ?".format(table_name), (name,))
 
     data = result.fetchone()
     if data is None:
         return None, None
 
-    return data[0], data[1]
+    return data[0], data[1], data[2]
 
 
-def get_teacher_name_and_url(name):
-    result = database.execute("SELECT name, url FROM teachers WHERE name = ?", (name,))
-
-    data = result.fetchone()
-    if data is None:
-        return None, None
-
-    return data[0], data[1]
+def update_file_id(table_name, name, file_id):
+    cursor = database.cursor()
+    cursor.execute('UPDATE {} SET file_id = ? WHERE name = ?'.format(table_name), (file_id, name,))
+    database.commit()
 
 
 def md5(text):
