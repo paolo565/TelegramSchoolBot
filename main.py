@@ -30,6 +30,11 @@ def timer():
     utils.update()
 
 
+@bot.chat_unavailable
+def chat_unavailable(chat_id, reason):
+    utils.remove_blog_subscriber(chat_id)
+
+
 @bot.command('iscriviti')
 def subscribe(chat, message, args):
     """Iscriviti alle notifiche"""
