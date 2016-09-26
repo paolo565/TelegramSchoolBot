@@ -201,7 +201,10 @@ class Utils:
         result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name = ?" % (table_name,), (name,))
 
         data = result.fetchone()
-        return None if data is None else data[0], data[1], data[2]
+        if data is None:
+            return None, None, None
+
+        return data[0], data[1], data[2]
 
     def update_file_id(self, table_name, name, file_id):
         self._database.execute('UPDATE %s SET file_id = ? WHERE name = ?' % (table_name,), (file_id, name,))
