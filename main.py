@@ -76,7 +76,8 @@ def class_command(chat, message, args):
         return
 
     name = ' '.join(args)
-    get_class_link(chat, message, name)
+    get_link(chat, message, name, 'classes', 'Non ho trovato la classe: <b>%s</b>' % (name,),
+             'Classe: %s\nPagina Orari: %s')
 
 
 @bot.command('prof')
@@ -89,29 +90,35 @@ def prof_command(chat, message, args):
         return
 
     name = ' '.join(args)
-    get_teacher_link(chat, message, name)
-
-
-def get_class_link(chat, message, name):
-    get_link(chat, message, name, 'classes', 'Non ho trovato la classe: <b>%s</b>' % (name,),
-             'Classe: %s\nPagina Orari: %s')
-
-
-def get_teacher_link(chat, message, name):
     get_link(chat, message, name, 'teachers', 'Non ho trovato il docente: <b>%s</b>' % (name,),
              'Docente: %s\nPagina Orari: %s')
+
+
+@bot.message_matches('[\s\S]*')
+def message_received(chat, message):
+    print('"%s" "%s" - "%s"' % (
+        message.sender.name if message.sender.username is None else "@" + message.sender.username,
+        '-' if chat.title is None else chat.title,
+        message.text,
+    ))
+
+    name = message.text.replace('@' + bot.itself.username, '').lstrip().rstrip()
+    if not get_link(chat, message, name, 'classes', None, 'Classe: %s\nPagina Orari: %s'):
+        get_link(chat, message, name, 'teachers', 'Non ho trovato nessuna classe o docente di nome <b>%s</b>' % (name,),
+                 'Docente: %s\nPagina Orari: %s')
 
 
 def get_link(chat, message, name, table_name, not_found_message, caption):
     response_name, response_url, response_file_id = bot_utils.get_name_url_and_file_id(table_name, name)
     if response_name is None:
-        chat.send(not_found_message, reply_to=message, syntax='HTML')
-        return
+        if not_found_message is not None:
+            chat.send(not_found_message, reply_to=message, syntax='HTML')
+        return False
 
     image_type, image = bot_utils.get_image_file(response_file_id, response_url, response_name, table_name)
     if image_type is None:
         chat.send('Si è verificato un errore 😢', reply_to=message, syntax='plain')
-        return
+        return True
 
     caption = caption % (response_name, response_url)
     if image_type == 'id':
@@ -126,6 +133,7 @@ def get_link(chat, message, name, table_name, not_found_message, caption):
     else:
         message = chat.send_photo(image, caption=caption, reply_to=message)
         bot_utils.update_file_id(table_name, response_name, message.photo.file_id)
+    return True
 
 
 if __name__ == '__main__':
