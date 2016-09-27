@@ -175,16 +175,13 @@ class Utils:
             with open(html_file, 'r') as f:
                 content = f.read()
 
-            with open(html_file, 'w+') as f:
-                f.write(response.text)
-
-            if content == response.text:
-                return response_type, response_file
-        else:
-            with open(html_file, 'w+') as f:
-                f.write(response.text)
+        with open(html_file, 'w+') as f:
+            f.write(response.text)
 
         if os.path.isfile(image_file):
+            if content == response.text:
+                return response_type, response_file
+
             os.remove(image_file)
 
         subprocess.call(('./wkhtmltox/bin/wkhtmltoimage', html_file, image_file))
