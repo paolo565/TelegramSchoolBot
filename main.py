@@ -72,7 +72,11 @@ def class_command(chat, message, args):
     log_request('classe', chat, message, args)
 
     if len(args) == 0:
-        chat.send("Fai /classe <Classe>", reply_to=message, syntax='plain')
+        chat.send("Ok, ora dimmi qual'è la classe di cui vuoi sapere l'orario", reply_to=message, syntax='plain',
+                  extra=botogram.ForceReply(data={
+                      'force_reply': True,
+                      'selective': True
+                  }))
         return
 
     name = ' '.join(args)
@@ -86,7 +90,11 @@ def prof_command(chat, message, args):
     log_request('prof', chat, message, args)
 
     if len(args) == 0:
-        chat.send("Fai /prof <Nome prof scritto come sul sito>", reply_to=message, syntax='plain')
+        chat.send("Ok, ora dimmi il nome del docente di cui vuoi sapere l'orario", reply_to=message, syntax='plain',
+                  extra=botogram.ForceReply(data={
+                      'force_reply': True,
+                      'selective': True
+                  }))
         return
 
     name = ' '.join(args)
