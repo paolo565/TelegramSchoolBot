@@ -195,7 +195,8 @@ class Utils:
         return None if data is None else data[0]
 
     def get_name_url_and_file_id(self, table_name, name):
-        result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name = ?" % (table_name,), (name,))
+        result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name = ? COLLATE NOCASE" %
+                                        (table_name,), (name,))
 
         data = result.fetchone()
         if data is None:
