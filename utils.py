@@ -195,14 +195,14 @@ class Utils:
         return None if data is None else data[0]
 
     def get_name_url_and_file_id(self, table_name, name):
-        result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name = ? COLLATE NOCASE" %
-                                        (table_name,), (name,))
+        result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name LIKE ? COLLATE NOCASE" %
+                                        (table_name,), ('%' + name.replace('%', '\\%') + '%',))
 
-        data = result.fetchone()
-        if data is None:
+        data = result.fetchall()
+        if data is None or len(data) != 1:
             return None, None, None
 
-        return data[0], data[1], data[2]
+        return data[0][0], data[0][1], data[0][2]
 
     def update_file_id(self, table_name, name, file_id):
         self._database.execute('UPDATE %s SET file_id = ? WHERE name = ?' % (table_name,), (file_id, name,))
