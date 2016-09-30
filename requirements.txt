@@ -1,2 +1,3 @@
 botogram>=0.3.4
-bs4
+requests
+beautifulsoup4
