@@ -155,7 +155,7 @@ class Utils:
     def get_image_file(self, file_id, url, name, folder):
         prefix = './images/' + folder + '/' + self.md5(name)
         html_file = prefix + '.html'
-        image_file = prefix + '.png'
+        image_file = prefix + '.jpg'
 
         response_type = 'file' if file_id is None else 'id'
         response_file = image_file if file_id is None else file_id
@@ -184,7 +184,7 @@ class Utils:
 
             os.remove(image_file)
 
-        subprocess.call(('./wkhtmltox/bin/wkhtmltoimage', html_file, image_file))
+        subprocess.call(('./wkhtmltox/bin/wkhtmltoimage', '--format', 'jpeg', '--quality', '100', html_file, image_file))
         success = os.path.isfile(image_file)
         return 'file' if success else None, image_file if success else None
 
