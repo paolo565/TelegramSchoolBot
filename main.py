@@ -40,7 +40,7 @@ def subscribe_command(chat, message, args):
     log_request('iscriviti', chat, message, args)
 
     bot_utils.add_blog_subscriber(chat.id)
-    chat.send('Ti sei iscritto con successo alle notifiche della scuola', reply_to=message)
+    message.reply('Ti sei iscritto con successo alle notifiche della scuola')
 
 
 @bot.command('disiscriviti')
@@ -49,7 +49,7 @@ def unsubscribe_command(chat, message, args):
     log_request('disiscriviti', chat, message, args)
 
     bot_utils.remove_blog_subscriber(chat.id)
-    chat.send('Ti sei disiscritto con successo dalle notifiche della scuola', reply_to=message)
+    message.reply('Ti sei disiscritto con successo dalle notifiche della scuola')
 
 
 @bot.command('orari')
@@ -59,11 +59,11 @@ def school_hours_link_command(chat, message, args):
 
     redirect_url = bot_utils.get_redirect_url()
     if redirect_url is None:
-        chat.send('Non conosco il link alla pagina degli orari 😢\n\nProva a cercarlo su:\n' + config.SCHOOL_WEBSITE,
-                  preview=False, reply_to=message)
+        message.reply('Non conosco il link alla pagina degli orari 😢\n\nProva a cercarlo su:%s\n' %
+                      (config.SCHOOL_WEBSITE,), preview=False)
         return
 
-    chat.send('Orari:\n' + redirect_url, preview=False, reply_to=message, syntax='plain')
+        message.reply('Orari:\n' + redirect_url, preview=False, syntax='plain')
 
 
 @bot.command('classe')
@@ -72,11 +72,11 @@ def class_command(chat, message, args):
     log_request('classe', chat, message, args)
 
     if len(args) == 0:
-        chat.send("Ok, ora dimmi qual'è la classe di cui vuoi sapere l'orario", reply_to=message, syntax='plain',
-                  extra=botogram.ForceReply(data={
-                      'force_reply': True,
-                      'selective': True
-                  }))
+        message.reply("Ok, ora dimmi qual'è la classe di cui vuoi sapere l'orario", syntax='plain',
+                      extra=botogram.ForceReply(data={
+                          'force_reply': True,
+                          'selective': True
+                      }))
         return
 
     name = ' '.join(args)
@@ -90,11 +90,11 @@ def prof_command(chat, message, args):
     log_request('prof', chat, message, args)
 
     if len(args) == 0:
-        chat.send("Ok, ora dimmi il nome del docente di cui vuoi sapere l'orario", reply_to=message, syntax='plain',
-                  extra=botogram.ForceReply(data={
-                      'force_reply': True,
-                      'selective': True
-                  }))
+        message.reply("Ok, ora dimmi il nome del docente di cui vuoi sapere l'orario", syntax='plain',
+                      extra=botogram.ForceReply(data={
+                          'force_reply': True,
+                          'selective': True
+                      }))
         return
 
     name = ' '.join(args)
@@ -120,12 +120,12 @@ def get_link(chat, message, name, table_name, not_found_message, caption):
     response_name, response_url, response_file_id = bot_utils.get_name_url_and_file_id(table_name, name)
     if response_name is None:
         if not_found_message is not None:
-            chat.send(not_found_message, reply_to=message, syntax='HTML')
+            message.reply(not_found_message, syntax='HTML')
         return False
 
     image_type, image = bot_utils.get_image_file(response_file_id, response_url, response_name, table_name)
     if image_type is None:
-        chat.send('Si è verificato un errore 😢', reply_to=message, syntax='plain')
+        message.reply('Si è verificato un errore 😢', syntax='plain')
         return True
 
     caption = caption % (response_name, response_url)
@@ -139,7 +139,7 @@ def get_link(chat, message, name, table_name, not_found_message, caption):
         }
         bot.api.call("sendPhoto", args)
     else:
-        message = chat.send_photo(image, caption=caption, reply_to=message)
+        message = message.reply_with_photo(image, caption=caption)
         bot_utils.update_file_id(table_name, response_name, message.photo.file_id)
     return True
 
