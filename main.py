@@ -11,7 +11,7 @@ bot.about = "Questo bot ti da gli orari scolastici dal sito " + bot_utils.get_sh
 bot.after_help = [
     "Sai programmare? Questo bot è opensource!",
     "Clicca qui sotto per andare alla pagina github dove puoi vedere il codice e contribuire",
-    "https://github.com/paolo565/TelegramSchoolBot",
+    "https://github.com/paolobarbolini/TelegramSchoolBot",
 ]
 
 

@@ -11,7 +11,7 @@ The first thing you need to do to host this bot for your school is to install py
 
 After doing that you need to clone this repository and install the requirements by using the following commands:
 
-    $ git clone https://github.com/paolo565/TelegramSchoolBot.git
+    $ git clone https://github.com/paolobarbolini/TelegramSchoolBot.git
     $ cd TelegramSchoolBot
     $ pip3 install -r requirements.txt
 
