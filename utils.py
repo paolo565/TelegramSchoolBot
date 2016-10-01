@@ -8,6 +8,7 @@ import subprocess
 import hashlib
 import os
 import time
+import botogram
 
 
 class Utils:
@@ -129,7 +130,11 @@ class Utils:
                 print('There\'s a new article:', blog[0])
 
                 for user in self._database.execute('SELECT telegram_uid FROM blog_subscribers'):
-                    self._bot.chat(user[0]).send('È uscito un nuovo articolo:\n%s' % (blog[0],))
+                    try:
+                        self._bot.chat(user[0]).send('È uscito un nuovo articolo:\n%s' % (blog[0],))
+                    except botogram.api.ChatUnavailableError:
+                        self.remove_blog_subscriber(user[0])
+
                     time.sleep(1)
             except sqlite3.DatabaseError:
                 pass
