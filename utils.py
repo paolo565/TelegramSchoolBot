@@ -72,7 +72,7 @@ class Utils:
         links = post_content.find_all('a')
         for link in links:
             href = link.get('href')
-            if href.startswith('/web_orario_'):
+            if href.startswith('/web_orario') or href.startswith('/weborario'):
                 redirect_url = urllib.parse.urljoin(url, href)
 
                 self._database.execute('INSERT OR REPLACE INTO links VALUES(?, ?)', ('redirect_url', redirect_url))
