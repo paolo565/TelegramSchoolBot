@@ -1,6 +1,7 @@
 import botogram
 import config
 from utils import Utils
+import html
 
 bot = botogram.create(config.TELEGRAM_TOKEN)
 bot_utils = Utils(bot)
@@ -80,7 +81,7 @@ def class_command(chat, message, args):
         return
 
     name = ' '.join(args)
-    get_link(chat, message, name, 'classes', 'Non ho trovato la classe: <b>%s</b>' % (name,),
+    get_link(chat, message, name, 'classes', 'Non ho trovato la classe: <b>%s</b>' % (html.escape(name),),
              'Classe: %s\nPagina Orari: %s')
 
 
@@ -98,7 +99,7 @@ def prof_command(chat, message, args):
         return
 
     name = ' '.join(args)
-    get_link(chat, message, name, 'teachers', 'Non ho trovato il docente: <b>%s</b>' % (name,),
+    get_link(chat, message, name, 'teachers', 'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),),
              'Docente: %s\nPagina Orari: %s')
 
 
@@ -112,8 +113,8 @@ def message_received(chat, message):
 
     name = message.text.replace('@' + bot.itself.username, '').lstrip().rstrip()
     if not get_link(chat, message, name, 'classes', None, 'Classe: %s\nPagina Orari: %s'):
-        get_link(chat, message, name, 'teachers', 'Non ho trovato nessuna classe o docente di nome <b>%s</b>' % (name,),
-                 'Docente: %s\nPagina Orari: %s')
+        get_link(chat, message, name, 'teachers', 'Non ho trovato nessuna classe o docente di nome <b>%s</b>' %
+                 (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
 
 def get_link(chat, message, name, table_name, not_found_message, caption):
