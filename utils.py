@@ -9,6 +9,7 @@ import hashlib
 import os
 import time
 import botogram
+import html
 
 
 class Utils:
@@ -54,10 +55,12 @@ class Utils:
                 break
 
         blogs_list = []
+        blogs_titles = parsed_html.find_all('h2', {'class': 'contentheading'})
         blogs = parsed_html.find_all('p', {'class': 'readmore'})
-        for blog in blogs:
-            link = blog.find('a')
-            blogs_list.append((urllib.parse.urljoin(config.SCHOOL_WEBSITE, link.get('href')),))
+        for i in range(0, len(blogs)):
+            title = blogs_titles[i].text.lstrip().rstrip()
+            link = urllib.parse.urljoin(config.SCHOOL_WEBSITE, blogs[i].find('a').get('href'))
+            blogs_list.append((title, link))
 
         return redirect_url, blogs_list
 
@@ -122,22 +125,34 @@ class Utils:
         self._database.commit()
 
     def process_blogs(self, blogs):
+        messages = []
+
         for blog in blogs:
             try:
-                self._database.execute('INSERT INTO blogs VALUES (?)', (blog[0],))
+                self._database.execute('INSERT INTO blogs VALUES (?)', (blog[1],))
                 self._database.commit()
 
-                print('There\'s a new article:', blog[0])
+                messages.append('- <a href="%s">%s</a>' % (html.escape(blog[1]), html.escape(blog[0])))
 
-                for user in self._database.execute('SELECT telegram_uid FROM blog_subscribers'):
-                    try:
-                        self._bot.chat(user[0]).send('È uscito un nuovo articolo:\n%s' % (blog[0],))
-                    except botogram.api.ChatUnavailableError:
-                        self.remove_blog_subscriber(user[0])
-
-                    time.sleep(1)
+                print('There\'s a new article, title:', blog[0])
             except sqlite3.DatabaseError:
                 pass
+
+        if len(messages) > 0:
+            if len(messages) == 1:
+                text = "<b>È uscito il seguente articolo:</b>"
+            else:
+                text = "<b>Sono usciti i seguenti articoli:</b>"
+
+            text += "\n" + "\n".join(messages)
+
+            for user in self._database.execute('SELECT telegram_uid FROM blog_subscribers'):
+                try:
+                    self._bot.chat(user[0]).send(text, syntax='HTML')
+                except botogram.api.ChatUnavailableError:
+                    self.remove_blog_subscriber(user[0])
+
+                time.sleep(2)
 
     def update(self):
         print('Updating...')
