@@ -60,11 +60,16 @@ def school_hours_link_command(chat, message, args):
 
     redirect_url = bot_utils.get_redirect_url()
     if redirect_url is None:
-        message.reply('Non conosco il link alla pagina degli orari 😢\n\nProva a cercarlo su:%s\n' %
-                      (config.SCHOOL_WEBSITE,), preview=False)
+        message.reply('Non conosco il link alla pagina degli orari 😢\n\n'
+                      '<a href="%s">Clicca Qui</a> per andare sul sito della scuola.' %
+                      (html.escape(config.SCHOOL_WEBSITE),), preview=False)
         return
 
-        message.reply('Orari:\n' + redirect_url, preview=False, syntax='plain')
+    message.reply('<a href="%s">Clicca Qui</a> per andare alla pagina degli orari\n\n'
+                  '<b>Ci sono altri comandi che potrebbero interessarti:</b>\n'
+                  '/classe Mostra gli orari di una classe\n'
+                  '/prof Mostra gli orari di un professore' % (html.escape(redirect_url),),
+                  preview=False, syntax='HTML')
 
 
 @bot.command('classe')
