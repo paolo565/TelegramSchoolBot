@@ -117,9 +117,16 @@ def message_received(chat, message):
     ))
 
     name = message.text.replace('@' + bot.itself.username, '').lstrip().rstrip()
-    if not get_link(chat, message, name, 'classes', None, 'Classe: %s\nPagina Orari: %s'):
-        get_link(chat, message, name, 'teachers', 'Non ho trovato nessuna classe o docente di nome <b>%s</b>' %
-                 (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
+    if name.startswith('classe '):
+        get_link(chat, message, name[7:], 'classes', 'Non ho trovato la classe: <b>%s</b>' % (html.escape(name),),
+                 'Classe: %s\nPagina Orari: %s')
+    elif name.startswith('prof '):
+        get_link(chat, message, name[5:], 'teachers', 'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),),
+                 'Docente: %s\nPagina Orari: %s')
+    else:
+        if not get_link(chat, message, name, 'classes', None, 'Classe: %s\nPagina Orari: %s'):
+            get_link(chat, message, name, 'teachers', 'Non ho trovato nessuna classe o docente di nome <b>%s</b>' %
+                     (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
 
 def get_link(chat, message, name, table_name, not_found_message, caption):
