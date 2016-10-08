@@ -37,7 +37,7 @@ def chat_unavailable(chat_id):
 
 @bot.command('iscriviti')
 def subscribe_command(chat, message, args):
-    """Iscriviti alle notifiche"""
+    """Iscriviti alle notifiche."""
     log_request('iscriviti', chat, message, args)
 
     bot_utils.add_blog_subscriber(chat.id)
@@ -46,7 +46,7 @@ def subscribe_command(chat, message, args):
 
 @bot.command('disiscriviti')
 def unsubscribe_command(chat, message, args):
-    """Iscriviti alle notifiche"""
+    """Disiscriviti dalle notifiche."""
     log_request('disiscriviti', chat, message, args)
 
     bot_utils.remove_blog_subscriber(chat.id)
@@ -55,7 +55,7 @@ def unsubscribe_command(chat, message, args):
 
 @bot.command('orari')
 def school_hours_link_command(chat, message, args):
-    """Link alla pagina degli orari"""
+    """Link alla pagina degli orari."""
     log_request('orari', chat, message, args)
 
     redirect_url = bot_utils.get_redirect_url()
@@ -74,7 +74,7 @@ def school_hours_link_command(chat, message, args):
 
 @bot.command('classe')
 def class_command(chat, message, args):
-    """Mostra gli orari di una classe"""
+    """Mostra gli orari di una classe."""
     log_request('classe', chat, message, args)
 
     if len(args) == 0:
@@ -92,7 +92,7 @@ def class_command(chat, message, args):
 
 @bot.command('prof')
 def prof_command(chat, message, args):
-    """Mostra gli orari di un professore"""
+    """Mostra gli orari di un professore."""
     log_request('prof', chat, message, args)
 
     if len(args) == 0:
