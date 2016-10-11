@@ -22,6 +22,8 @@ class Utils:
                                ' file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
         self._database.execute('CREATE TABLE IF NOT EXISTS teachers (name TEXT NOT NULL, url TEXT NOT NULL, '
                                'file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
+        self._database.execute('CREATE TABLE IF NOT EXISTS teachers2 (name TEXT NOT NULL, url TEXT NOT NULL, '
+                               'file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
         self._database.execute('CREATE TABLE IF NOT EXISTS links (name TEXT NOT NULL, url TEXT NOT NULL, '
                                'PRIMARY KEY (name));')
         self._database.execute('CREATE TABLE IF NOT EXISTS blogs (link TEXT NOT NULL, PRIMARY KEY (link));')
@@ -35,6 +37,9 @@ class Utils:
 
         if not os.path.isdir('./images/teachers/'):
             os.makedirs('./images/teachers/')
+
+        if not os.path.isdir('./images/teachers2/'):
+            os.makedirs('./images/teachers2/')
 
     @staticmethod
     def refresh_main():
@@ -70,6 +75,9 @@ class Utils:
             print('Failed to request the redirect url')
             return None
 
+        calendar1 = None
+        calendar2 = None
+
         parsed_html = BeautifulSoup(response.text, 'html.parser')
         post_content = parsed_html.find('div', {'id': 'jsn-mainbody'})
         links = post_content.find_all('a')
@@ -78,12 +86,22 @@ class Utils:
             if href.startswith('/web_orario') or href.startswith('/weborario'):
                 redirect_url = urllib.parse.urljoin(url, href)
 
-                self._database.execute('INSERT OR REPLACE INTO links VALUES(?, ?)', ('redirect_url', redirect_url))
+                if calendar1 is None:
+                    calendar1 = redirect_url
+                    key = 'calendar1'
+                else:
+                    calendar2 = redirect_url
+                    key = 'calendar2'
+
+                self._database.execute('INSERT OR REPLACE INTO links VALUES(?, ?)', (key, redirect_url))
                 self._database.commit()
 
-                return redirect_url
+                if calendar2 is not None:
+                    break
 
-    def refresh_calendar(self, url):
+        return calendar1, calendar2
+
+    def refresh_calendar(self, url, first_calendar):
         response = requests.get(url)
         if response.status_code != 200:
             print('Failed to request the classes url')
@@ -95,7 +113,7 @@ class Utils:
         links = parsed_html.find_all('a')
         for link in links:
             href = link.get('href')
-            if href.startswith('Classi/'):
+            if first_calendar and href.startswith('Classi/'):
                 classes.append((
                     link.text,
                     urllib.parse.urljoin(url, href),
@@ -113,14 +131,17 @@ class Utils:
         print('Classes:', len(classes))
         print('Teachers:', len(teachers))
 
-        self._database.execute('UPDATE classes SET old = 1')
-        self._database.execute('UPDATE teachers SET old = 1')
-        self._database.executemany('INSERT OR REPLACE INTO classes (name, url, file_id, old) VALUES '
-                                   '(?, ?, (SELECT file_id FROM classes WHERE name = ?), ?)', classes)
-        self._database.executemany('INSERT OR REPLACE INTO teachers (name, url, file_id, old) VALUES '
-                                   '(?, ?, (SELECT file_id FROM teachers WHERE name = ?), ?)', teachers)
-        self._database.execute('DELETE FROM classes WHERE old = 1')
-        self._database.execute('DELETE FROM teachers WHERE old = 1')
+        if first_calendar:
+            self._database.execute('UPDATE classes SET old = 1')
+            self._database.executemany('INSERT OR REPLACE INTO classes (name, url, file_id, old) VALUES '
+                                       '(?, ?, (SELECT file_id FROM classes WHERE name = ?), ?)', classes)
+            self._database.execute('DELETE FROM classes WHERE old = 1')
+
+        table_name = 'teachers' if first_calendar else 'teachers2'
+        self._database.execute('UPDATE %s SET old = 1' % (table_name,))
+        self._database.executemany('INSERT OR REPLACE INTO %s (name, url, file_id, old) VALUES '
+                                   '(?, ?, (SELECT file_id FROM teachers WHERE name = ?), ?)' % (table_name,), teachers)
+        self._database.execute('DELETE FROM %s WHERE old = 1' % (table_name,))
 
         self._database.commit()
 
@@ -164,13 +185,19 @@ class Utils:
             return False
         print('Main URL:', main_url)
 
-        redirect_url = self.refresh_redirect(main_url)
-        if redirect_url is None:
-            print('Failed to get the redirect url')
+        calendar1, calendar2 = self.refresh_redirect(main_url)
+        if calendar1 is None:
+            print('Failed to get the calendars')
             return False
-        print('Redirect URL:', redirect_url)
+        print('Calendar1:', calendar1)
 
-        self.refresh_calendar(redirect_url)
+        self.refresh_calendar(calendar1, True)
+
+        if calendar2 is None:
+            print('Failed to get the second calendar')
+            return False
+        print('Calendar2:', calendar2)
+        self.refresh_calendar(calendar2, False)
 
     def get_image_file(self, file_id, url, name, folder):
         prefix = './images/' + folder + '/' + self.md5(name)
@@ -208,8 +235,8 @@ class Utils:
         success = os.path.isfile(image_file)
         return 'file' if success else None, image_file if success else None
 
-    def get_redirect_url(self):
-        result = self._database.execute("SELECT url FROM links WHERE name = 'redirect_url'")
+    def get_calendar(self, calendar_number):
+        result = self._database.execute("SELECT url FROM links WHERE name = 'calendar%i'" % (calendar_number,))
 
         data = result.fetchone()
         return None if data is None else data[0]

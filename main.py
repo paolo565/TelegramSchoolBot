@@ -58,17 +58,33 @@ def school_hours_link_command(chat, message, args):
     """Link alla pagina degli orari."""
     log_request('orari', chat, message, args)
 
-    redirect_url = bot_utils.get_redirect_url()
-    if redirect_url is None:
+    calendar = bot_utils.get_calendar(1)
+    if calendar is None:
         message.reply('Non conosco il link alla pagina degli orari 😢\n\n'
                       '<a href="%s">Clicca Qui</a> per andare sul sito della scuola.' %
                       (html.escape(config.SCHOOL_WEBSITE),), preview=False)
         return
 
     message.reply('<a href="%s">Clicca Qui</a> per andare alla pagina degli orari\n\n'
-                  '<b>Ci sono altri comandi che potrebbero interessarti:</b>\n'
-                  '/classe Mostra gli orari di una classe\n'
-                  '/prof Mostra gli orari di un professore' % (html.escape(redirect_url),),
+                  '<b>Vuoi andare alla pagina degli orari dei prof di sostegno?</b>\n'
+                  'Fai /orari2' % (html.escape(calendar),),
+                  preview=False, syntax='HTML')
+
+
+@bot.command('orari2')
+def school_hours_link2_command(chat, message, args):
+    """Link alla pagina degli orari dei prof di sostegno."""
+    log_request('orari2', chat, message, args)
+
+    calendar = bot_utils.get_calendar(2)
+    if calendar is None:
+        message.reply('Non conosco il link alla pagina degli orari dei prof di sostegno 😢\n\n'
+                      '<a href="%s">Clicca Qui</a> per andare sul sito della scuola.' %
+                      (html.escape(config.SCHOOL_WEBSITE),), preview=False)
+        return
+
+    message.reply('<a href="%s">Clicca Qui</a> per andare alla pagina degli orari dei prof si sostegno'
+                  % (html.escape(calendar),),
                   preview=False, syntax='HTML')
 
 
@@ -92,7 +108,7 @@ def class_command(chat, message, args):
 
 @bot.command('prof')
 def prof_command(chat, message, args):
-    """Mostra gli orari di un professore."""
+    """Mostra gli orari di un docente."""
     log_request('prof', chat, message, args)
 
     if len(args) == 0:
@@ -105,6 +121,24 @@ def prof_command(chat, message, args):
 
     name = ' '.join(args)
     get_link(chat, message, name, 'teachers', 'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),),
+             'Docente: %s\nPagina Orari: %s')
+
+
+@bot.command('prof2')
+def prof2_command(chat, message, args):
+    """Mostra gli orari di un docente di sostegno."""
+    log_request('prof2', chat, message, args)
+
+    if len(args) == 0:
+        message.reply("Ok, ora dimmi il nome del docente di sostegno di cui vuoi sapere l'orario", syntax='plain',
+                      extra=botogram.ForceReply(data={
+                          'force_reply': True,
+                          'selective': True
+                      }))
+        return
+
+    name = ' '.join(args)
+    get_link(chat, message, name, 'teachers2', 'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),),
              'Docente: %s\nPagina Orari: %s')
 
 
@@ -125,10 +159,18 @@ def message_received(chat, message):
         return get_link(chat, message, name[5:], 'teachers', 'Non ho trovato il docente: <b>%s</b>' %
                         (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
+    if name.startswith('prof2 '):
+        return get_link(chat, message, name[6:], 'teachers2', 'Non ho trovato il docente: <b>%s</b>'
+                        % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
+
+    if message.reply_to_message is not None and message.reply_to_message.text is not None and "sostegno" in message.reply_to_message.text:
+        return get_link(chat, message, name, 'teachers2', 'Non ho trovato nessun docente di sostegno di nome <b>%s</b>'
+                        % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
+
     if not get_link(chat, message, name, 'classes', None, 'Classe: %s\nPagina Orari: %s'):
         if not get_link(chat, message, name, 'teachers',
                         'Non ho trovato nessuna classe o docente di nome <b>%s</b>' %
-                        (html.escape(name),), 'Docente: %s\nPagina Orari: %s'):
+                                (html.escape(name),), 'Docente: %s\nPagina Orari: %s'):
             return False
     return True
 
