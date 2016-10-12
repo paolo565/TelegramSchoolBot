@@ -71,10 +71,10 @@ def school_hours_link_command(chat, message, args):
                   preview=False, syntax='HTML')
 
 
-@bot.command('orari2')
+@bot.command('orarisostegno')
 def school_hours_link2_command(chat, message, args):
     """Link alla pagina degli orari dei prof di sostegno."""
-    log_request('orari2', chat, message, args)
+    log_request('orarisostegno', chat, message, args)
 
     calendar = bot_utils.get_calendar(2)
     if calendar is None:
@@ -124,10 +124,10 @@ def prof_command(chat, message, args):
              'Docente: %s\nPagina Orari: %s')
 
 
-@bot.command('prof2')
+@bot.command('profsostegno')
 def prof2_command(chat, message, args):
     """Mostra gli orari di un docente di sostegno."""
-    log_request('prof2', chat, message, args)
+    log_request('profsostegno', chat, message, args)
 
     if len(args) == 0:
         message.reply("Ok, ora dimmi il nome del docente di sostegno di cui vuoi sapere l'orario", syntax='plain',
@@ -159,8 +159,12 @@ def message_received(chat, message):
         return get_link(chat, message, name[5:], 'teachers', 'Non ho trovato il docente: <b>%s</b>' %
                         (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
-    if name.startswith('prof2 '):
+    if name.startswith('profs '):
         return get_link(chat, message, name[6:], 'teachers2', 'Non ho trovato il docente: <b>%s</b>'
+                        % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
+
+    if name.startswith('profsostegno '):
+        return get_link(chat, message, name[13:], 'teachers2', 'Non ho trovato il docente: <b>%s</b>'
                         % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
     if message.reply_to_message is not None and message.reply_to_message.text is not None and "sostegno" in message.reply_to_message.text:
