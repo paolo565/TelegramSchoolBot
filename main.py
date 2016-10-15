@@ -16,12 +16,15 @@ bot.after_help = [
 ]
 
 
-def log_request(command, chat, message, args):
-    print('"%s" "%s" - "/%s %s"' % (
+@bot.before_processing
+def log_request(chat, message):
+    if message.text is None:
+        return False
+
+    print('"%s" "%s" - "%s"' % (
         message.sender.name if message.sender.username is None else "@" + message.sender.username,
         '-' if chat.title is None else chat.title,
-        command,
-        ' '.join(args)
+        message.text
     ))
 
 
@@ -38,7 +41,6 @@ def chat_unavailable(chat_id):
 @bot.command('iscriviti')
 def subscribe_command(chat, message, args):
     """Iscriviti alle notifiche."""
-    log_request('iscriviti', chat, message, args)
 
     bot_utils.add_blog_subscriber(chat.id)
     message.reply('Ti sei iscritto con successo alle notifiche della scuola')
@@ -47,7 +49,6 @@ def subscribe_command(chat, message, args):
 @bot.command('disiscriviti')
 def unsubscribe_command(chat, message, args):
     """Disiscriviti dalle notifiche."""
-    log_request('disiscriviti', chat, message, args)
 
     bot_utils.remove_blog_subscriber(chat.id)
     message.reply('Ti sei disiscritto con successo dalle notifiche della scuola')
@@ -56,7 +57,6 @@ def unsubscribe_command(chat, message, args):
 @bot.command('orari')
 def school_hours_link_command(chat, message, args):
     """Link alla pagina degli orari."""
-    log_request('orari', chat, message, args)
 
     calendar = bot_utils.get_calendar(1)
     if calendar is None:
@@ -74,7 +74,6 @@ def school_hours_link_command(chat, message, args):
 @bot.command('orarisostegno')
 def school_hours_link2_command(chat, message, args):
     """Link alla pagina degli orari dei prof di sostegno."""
-    log_request('orarisostegno', chat, message, args)
 
     calendar = bot_utils.get_calendar(2)
     if calendar is None:
@@ -91,7 +90,6 @@ def school_hours_link2_command(chat, message, args):
 @bot.command('classe')
 def class_command(chat, message, args):
     """Mostra gli orari di una classe."""
-    log_request('classe', chat, message, args)
 
     if len(args) == 0:
         message.reply("Ok, ora dimmi qual'è la classe di cui vuoi sapere l'orario", syntax='plain',
@@ -109,7 +107,6 @@ def class_command(chat, message, args):
 @bot.command('prof')
 def prof_command(chat, message, args):
     """Mostra gli orari di un docente."""
-    log_request('prof', chat, message, args)
 
     if len(args) == 0:
         message.reply("Ok, ora dimmi il nome del docente di cui vuoi sapere l'orario", syntax='plain',
@@ -127,7 +124,6 @@ def prof_command(chat, message, args):
 @bot.command('profsostegno')
 def prof2_command(chat, message, args):
     """Mostra gli orari di un docente di sostegno."""
-    log_request('profsostegno', chat, message, args)
 
     if len(args) == 0:
         message.reply("Ok, ora dimmi il nome del docente di sostegno di cui vuoi sapere l'orario", syntax='plain',
@@ -144,11 +140,8 @@ def prof2_command(chat, message, args):
 
 @bot.process_message
 def message_received(chat, message):
-    print('"%s" "%s" - "%s"' % (
-        message.sender.name if message.sender.username is None else "@" + message.sender.username,
-        '-' if chat.title is None else chat.title,
-        message.text,
-    ))
+    if message.text is None:
+        return False
 
     name = message.text.replace('@' + bot.itself.username, '').lstrip().rstrip()
     if name.startswith('classe '):
