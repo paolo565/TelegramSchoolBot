@@ -14,6 +14,7 @@ bot.after_help = [
     "Clicca qui sotto per andare alla pagina github dove puoi vedere il codice e contribuire",
     "https://github.com/paolobarbolini/TelegramSchoolBot",
 ]
+bot.link_preview_in_help = False
 
 
 @bot.before_processing
@@ -38,7 +39,7 @@ def chat_unavailable(chat_id):
     bot_utils.remove_blog_subscriber(chat_id)
 
 
-@bot.command('iscriviti')
+@bot.command('iscriviti', order=60)
 def subscribe_command(chat, message, args):
     """Iscriviti alle notifiche."""
 
@@ -46,7 +47,7 @@ def subscribe_command(chat, message, args):
     message.reply('Ti sei iscritto con successo alle notifiche della scuola')
 
 
-@bot.command('disiscriviti')
+@bot.command('disiscriviti', order=70)
 def unsubscribe_command(chat, message, args):
     """Disiscriviti dalle notifiche."""
 
@@ -54,7 +55,7 @@ def unsubscribe_command(chat, message, args):
     message.reply('Ti sei disiscritto con successo dalle notifiche della scuola')
 
 
-@bot.command('orari')
+@bot.command('orari', order=10)
 def school_hours_link_command(chat, message, args):
     """Link alla pagina degli orari."""
 
@@ -71,7 +72,7 @@ def school_hours_link_command(chat, message, args):
                   preview=False, syntax='HTML')
 
 
-@bot.command('orarisostegno')
+@bot.command('orarisostegno', order=20)
 def school_hours_link2_command(chat, message, args):
     """Link alla pagina degli orari dei prof di sostegno."""
 
@@ -87,7 +88,7 @@ def school_hours_link2_command(chat, message, args):
                   preview=False, syntax='HTML')
 
 
-@bot.command('classe')
+@bot.command('classe', order=30)
 def class_command(chat, message, args):
     """Mostra gli orari di una classe."""
 
@@ -104,7 +105,7 @@ def class_command(chat, message, args):
              'Classe: %s\nPagina Orari: %s')
 
 
-@bot.command('prof')
+@bot.command('prof', order=40)
 def prof_command(chat, message, args):
     """Mostra gli orari di un docente."""
 
@@ -121,7 +122,7 @@ def prof_command(chat, message, args):
              'Docente: %s\nPagina Orari: %s')
 
 
-@bot.command('profsostegno')
+@bot.command('profsostegno', order=50)
 def prof2_command(chat, message, args):
     """Mostra gli orari di un docente di sostegno."""
 
