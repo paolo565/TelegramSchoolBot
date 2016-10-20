@@ -141,7 +141,7 @@ def prof2_command(chat, message, args):
 
 @bot.process_message
 def message_received(chat, message):
-    if message.text is None:
+    if message.text is None or message.text.startswith('/'):
         return False
 
     name = message.text.replace('@' + bot.itself.username, '').lstrip().rstrip()
