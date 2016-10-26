@@ -68,7 +68,7 @@ def school_hours_link_command(chat, message, args):
 
     message.reply('<a href="%s">Clicca Qui</a> per andare alla pagina degli orari\n\n'
                   '<b>Vuoi andare alla pagina degli orari dei prof di sostegno?</b>\n'
-                  'Fai /orari2' % (html.escape(calendar),),
+                  'Fai /orarisostegno' % (html.escape(calendar),),
                   preview=False, syntax='HTML')
 
 
