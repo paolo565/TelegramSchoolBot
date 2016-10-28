@@ -141,7 +141,7 @@ def prof2_command(chat, message, args):
 
 @bot.command('aula', order=55)
 def classrooms_command(chat, message, args):
-    """Mostra gli orari di un docente di sostegno."""
+    """Mostra gli orari di un aula."""
 
     if len(args) == 0:
         message.reply("Ok, ora dimmi l'aula di cui vuoi sapere l'orario", syntax='plain',
