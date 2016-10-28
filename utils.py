@@ -24,6 +24,9 @@ class Utils:
                                'file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
         self._database.execute('CREATE TABLE IF NOT EXISTS teachers2 (name TEXT NOT NULL, url TEXT NOT NULL, '
                                'file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
+        self._database.execute('CREATE TABLE IF NOT EXISTS classrooms (name TEXT NOT NULL, url TEXT NOT NULL, '
+                               'file_id TEXT DEFAULT NULL, old TINYINT(1), PRIMARY KEY (name));')
+
         self._database.execute('CREATE TABLE IF NOT EXISTS links (name TEXT NOT NULL, url TEXT NOT NULL, '
                                'PRIMARY KEY (name));')
         self._database.execute('CREATE TABLE IF NOT EXISTS blogs (link TEXT NOT NULL, PRIMARY KEY (link));')
@@ -40,6 +43,9 @@ class Utils:
 
         if not os.path.isdir('./images/teachers2/'):
             os.makedirs('./images/teachers2/')
+
+        if not os.path.isdir('./images/classrooms/'):
+            os.makedirs('./images/classrooms/')
 
     @staticmethod
     def refresh_main():
@@ -109,6 +115,8 @@ class Utils:
 
         classes = []
         teachers = []
+        classrooms = []
+
         parsed_html = BeautifulSoup(response.text, 'html.parser')
         links = parsed_html.find_all('a')
         for link in links:
@@ -127,15 +135,28 @@ class Utils:
                     link.text,
                     0,
                 ))
+            elif first_calendar and href.startswith('Aule/'):
+                classrooms.append((
+                    link.text,
+                    urllib.parse.urljoin(url, href),
+                    link.text,
+                    0,
+                ))
 
         print('Classes:', len(classes))
         print('Teachers:', len(teachers))
+        print('Classrooms:', len(classrooms))
 
         if first_calendar:
             self._database.execute('UPDATE classes SET old = 1')
             self._database.executemany('INSERT OR REPLACE INTO classes (name, url, file_id, old) VALUES '
                                        '(?, ?, (SELECT file_id FROM classes WHERE name = ?), ?)', classes)
             self._database.execute('DELETE FROM classes WHERE old = 1')
+
+            self._database.execute('UPDATE classrooms SET old = 1')
+            self._database.executemany('INSERT OR REPLACE INTO classrooms (name, url, file_id, old) VALUES '
+                                       '(?, ?, (SELECT file_id FROM classes WHERE name = ?), ?)', classrooms)
+            self._database.execute('DELETE FROM classrooms WHERE old = 1')
 
         table_name = 'teachers' if first_calendar else 'teachers2'
         self._database.execute('UPDATE %s SET old = 1' % (table_name,))
@@ -242,11 +263,12 @@ class Utils:
         return None if data is None else data[0]
 
     def get_name_url_and_file_id(self, table_name, name):
-        result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name LIKE ? COLLATE NOCASE" %
-                                        (table_name,), ('%' + name.replace('%', '\\%') + '%',))
+        result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name LIKE ? COLLATE NOCASE "
+                                        "ORDER BY abs(length(?) - length(name)), name;" %
+                                        (table_name,), ('%' + name.replace('%', '\\%') + '%', name,))
 
         data = result.fetchall()
-        if data is None or len(data) != 1:
+        if data is None or len(data) == 0:
             return None, None, None
 
         return data[0][0], data[0][1], data[0][2]

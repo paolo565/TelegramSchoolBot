@@ -139,6 +139,23 @@ def prof2_command(chat, message, args):
              'Docente: %s\nPagina Orari: %s')
 
 
+@bot.command('aula', order=55)
+def classrooms_command(chat, message, args):
+    """Mostra gli orari di un docente di sostegno."""
+
+    if len(args) == 0:
+        message.reply("Ok, ora dimmi l'aula di cui vuoi sapere l'orario", syntax='plain',
+                      extra=botogram.ForceReply(data={
+                          'force_reply': True,
+                          'selective': True
+                      }))
+        return
+
+    name = ' '.join(args)
+    get_link(chat, message, name, 'classrooms', 'Non ho trovato l\'aula: <b>%s</b>'
+             % (html.escape(name),), 'Aula: %s\nPagina Orari: %s')
+
+
 @bot.process_message
 def message_received(chat, message):
     if message.text is None or message.text.startswith('/'):
@@ -165,11 +182,16 @@ def message_received(chat, message):
         return get_link(chat, message, name, 'teachers2', 'Non ho trovato nessun docente di sostegno di nome <b>%s</b>'
                         % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
+    if name.startswith('aula '):
+        return get_link(chat, message, name[5:], 'classrooms', 'Non ho trovato l\'aula: <b>%s</b>'
+                        % (html.escape(name),), 'Aula: %s\nPagina Orari: %s')
+
     if not get_link(chat, message, name, 'classes', None, 'Classe: %s\nPagina Orari: %s'):
-        if not get_link(chat, message, name, 'teachers',
-                        'Non ho trovato nessuna classe o docente di nome <b>%s</b>' %
-                                (html.escape(name),), 'Docente: %s\nPagina Orari: %s'):
-            return False
+        if not get_link(chat, message, name, 'teachers', None, 'Docente: %s\nPagina Orari: %s'):
+            if not get_link(chat, message, name, 'classrooms',
+                            'Non ho trovato nessuna classe, docente o aula di nome <b>%s</b>'
+                            % (html.escape(name),), 'Aula: %s\nPagina Orari: %s'):
+                return False
     return True
 
 
