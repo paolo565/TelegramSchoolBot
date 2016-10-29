@@ -47,6 +47,13 @@ class Utils:
         if not os.path.isdir('./images/classrooms/'):
             os.makedirs('./images/classrooms/')
 
+        with open('table-head-modification.html', 'r') as f:
+            self.table_head_modification = f.read()
+
+        with open('table-body-modification.html', 'r') as f:
+            self.table_body_modification = f.read()
+
+
     @staticmethod
     def refresh_main():
         response = requests.get(config.SCHOOL_WEBSITE)
@@ -220,6 +227,14 @@ class Utils:
         print('Calendar2:', calendar2)
         self.refresh_calendar(calendar2, False)
 
+    def prettify_page(self, source):
+        source = source.replace('<style>', '<!--<style>')
+        source = source.replace('</style>', '</style>-->')
+        source = source.replace('</HEAD>', self.table_head_modification + '</HEAD>')
+        source = source.replace('</body>', self.table_body_modification + '</body>')
+
+        return source
+
     def get_image_file(self, file_id, url, name, folder):
         prefix = './images/' + folder + '/' + self.md5(name)
         html_file = prefix + '.html'
@@ -239,15 +254,17 @@ class Utils:
         if response.status_code != 200:
             return None, None
 
+        prettified_text = self.prettify_page(response.text)
+
         if os.path.isfile(html_file):
             with open(html_file, 'r') as f:
                 content = f.read()
 
         with open(html_file, 'w+') as f:
-            f.write(response.text)
+            f.write(prettified_text)
 
         if os.path.isfile(image_file):
-            if content == response.text:
+            if content == prettified_text:
                 return response_type, response_file
 
             os.remove(image_file)
