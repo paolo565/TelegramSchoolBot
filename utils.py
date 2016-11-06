@@ -222,8 +222,12 @@ class Utils:
         self.refresh_calendar(calendar1, True)
 
         if calendar2 is None:
+            self._database.execute("DELETE FROM links WHERE name = 'calendar2'")
+            self._database.commit()
+
             print('Failed to get the second calendar')
             return False
+
         print('Calendar2:', calendar2)
         self.refresh_calendar(calendar2, False)
 
@@ -277,7 +281,10 @@ class Utils:
         result = self._database.execute("SELECT url FROM links WHERE name = 'calendar%i'" % (calendar_number,))
 
         data = result.fetchone()
-        return None if data is None else data[0]
+        return None if data is None or len(data) == 0 else data[0]
+
+    def has_second_calendar(self):
+        return self.get_calendar(2) is not None
 
     def get_name_url_and_file_id(self, table_name, name):
         result = self._database.execute("SELECT name, url, file_id FROM %s WHERE name LIKE ? COLLATE NOCASE "

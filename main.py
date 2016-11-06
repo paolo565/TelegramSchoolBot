@@ -76,7 +76,7 @@ def school_hours_link_command(chat, message, args):
 def school_hours_link2_command(chat, message, args):
     """Link alla pagina degli orari dei prof di sostegno."""
 
-    calendar = bot_utils.get_calendar(2)
+    calendar = bot_utils.get_calendar(2 if bot_utils.has_second_calendar() else 1)
     if calendar is None:
         message.reply('Non conosco il link alla pagina degli orari dei prof di sostegno 😢\n\n'
                       '<a href="%s">Clicca Qui</a> per andare sul sito della scuola.' %
@@ -135,8 +135,8 @@ def prof2_command(chat, message, args):
         return
 
     name = ' '.join(args)
-    get_link(chat, message, name, 'teachers2', 'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),),
-             'Docente: %s\nPagina Orari: %s')
+    get_link(chat, message, name, 'teachers2' if bot_utils.has_second_calendar() else 'teachers',
+             'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
 
 @bot.command('aula', order=55)
@@ -171,15 +171,17 @@ def message_received(chat, message):
                         (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
     if name.startswith('profs '):
-        return get_link(chat, message, name[6:], 'teachers2', 'Non ho trovato il docente: <b>%s</b>'
-                        % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
+        return get_link(chat, message, name[6:], 'teachers2' if bot_utils.has_second_calendar() else 'teachers',
+                        'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
     if name.startswith('profsostegno '):
-        return get_link(chat, message, name[13:], 'teachers2', 'Non ho trovato il docente: <b>%s</b>'
-                        % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
+        return get_link(chat, message, name[13:], 'teachers2' if bot_utils.has_second_calendar() else 'teachers',
+                        'Non ho trovato il docente: <b>%s</b>' % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
-    if message.reply_to_message is not None and message.reply_to_message.text is not None and "sostegno" in message.reply_to_message.text:
-        return get_link(chat, message, name, 'teachers2', 'Non ho trovato nessun docente di sostegno di nome <b>%s</b>'
+    if message.reply_to_message is not None and message.reply_to_message.text is not None and \
+       "sostegno" in message.reply_to_message.text:
+        return get_link(chat, message, name, 'teachers2' if bot_utils.has_second_calendar() else 'teachers',
+                        'Non ho trovato nessun docente di sostegno di nome <b>%s</b>'
                         % (html.escape(name),), 'Docente: %s\nPagina Orari: %s')
 
     if name.startswith('aula '):
@@ -190,7 +192,7 @@ def message_received(chat, message):
         if not get_link(chat, message, name, 'teachers', None, 'Docente: %s\nPagina Orari: %s'):
             if not get_link(chat, message, name, 'classrooms',
                             'Non ho trovato nessuna classe, docente o aula di nome <b>%s</b>'
-                            % (html.escape(name),), 'Aula: %s\nPagina Orari: %s'):
+                                    % (html.escape(name),), 'Aula: %s\nPagina Orari: %s'):
                 return False
     return True
 
