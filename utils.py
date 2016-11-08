@@ -197,7 +197,7 @@ class Utils:
 
             for user in self._database.execute('SELECT telegram_uid FROM blog_subscribers'):
                 try:
-                    self._bot.chat(user[0]).send(text, syntax='HTML')
+                    self._bot.chat(user[0]).send(text, syntax='HTML', preview=False)
                 except botogram.api.ChatUnavailableError:
                     self.remove_blog_subscriber(user[0])
 
