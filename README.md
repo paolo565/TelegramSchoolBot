@@ -21,11 +21,6 @@ Now clone this repository and install the requirements by using the following co
 
 Now download ``wkhtmltopdf`` from their [official website](http://wkhtmltopdf.org/downloads.html) and extract the contents into the bot main directory.
 
-### Compatibility with botogram 0.3.4
-The latest version of the bot is using an in dev version of botogram, if you want to use the version compatible with botogram 0.3.4 remove ``bot.link_preview_in_help = False`` and remove the ``order`` argument from all of the ``@bot.command`` decorators
-
-If you want to install the latest version of botogram follow this instructions: https://github.com/pietroalbini/botogram
-
 ### Creating a new telegram bot
 You can find all of the instructions on how to create a new bot [here](https://core.telegram.org/bots#6-botfather)
 
