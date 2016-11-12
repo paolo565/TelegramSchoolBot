@@ -209,7 +209,7 @@ def get_link(chat, message, name, table_name, not_found_message, caption):
         message.reply('Si è verificato un errore 😢', syntax='plain')
         return True
 
-    caption = caption % (response_name, response_url)
+    caption = caption % (response_name, response_url.replace(' ', '%20'))
     if image_type == 'id':
         # Temporary, because botogram doesn't support sending files by the file_id
         args = {
