@@ -25,9 +25,7 @@ Now download ``wkhtmltopdf`` from their [official website](http://wkhtmltopdf.or
 You can find all of the instructions on how to create a new bot [here](https://core.telegram.org/bots#6-botfather)
 
 ### Setup
-Now open ``config.py`` and set the bot token that BotFather gave you.
-
-You also must configure your school website home page url.
+Set the ``TELEGRAM_TOKEN`` environment variable with the telegram api token that BotFather gave you and the ``SCHOOL_WEBSITE`` environment variable with your school website home page url.
 
 ### Contributing
 I highly appreciate your contributions in the matter of fixing bugs and optimizing the bot source code, but i won't accept your pull request if it adds features that i don't want to get added to the bot for my school or if it breaks compatibility with my school website.

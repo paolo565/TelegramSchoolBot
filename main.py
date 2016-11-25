@@ -1,14 +1,14 @@
 import botogram
-import config
 from utils import Utils
 import html
+import os
 
-bot = botogram.create(config.TELEGRAM_TOKEN)
+bot = botogram.create(os.environ["TELEGRAM_TOKEN"])
 bot_utils = Utils(bot)
 
 bot.lang = "it"
 bot.owner = "@Paolo565"
-bot.about = "Questo bot ti da gli orari scolastici dal sito " + bot_utils.get_short_domain(config.SCHOOL_WEBSITE)
+bot.about = "Questo bot ti da gli orari scolastici dal sito " + bot_utils.get_short_domain(os.environ["SCHOOL_WEBSITE"])
 bot.after_help = [
     "Sai programmare? Questo bot è opensource!",
     "Clicca qui sotto per andare alla pagina github dove puoi vedere il codice e contribuire",
@@ -63,7 +63,7 @@ def school_hours_link_command(chat, message, args):
     if calendar is None:
         message.reply('Non conosco il link alla pagina degli orari 😢\n\n'
                       '<a href="%s">Clicca Qui</a> per andare sul sito della scuola.' %
-                      (html.escape(config.SCHOOL_WEBSITE),), preview=False)
+                      (html.escape(os.environ["SCHOOL_WEBSITE"]),), preview=False)
         return
 
     message.reply('<a href="%s">Clicca Qui</a> per andare alla pagina degli orari\n\n'
@@ -80,7 +80,7 @@ def school_hours_link2_command(chat, message, args):
     if calendar is None:
         message.reply('Non conosco il link alla pagina degli orari dei prof di sostegno 😢\n\n'
                       '<a href="%s">Clicca Qui</a> per andare sul sito della scuola.' %
-                      (html.escape(config.SCHOOL_WEBSITE),), preview=False)
+                      (html.escape(os.environ["SCHOOL_WEBSITE"]),), preview=False)
         return
 
     message.reply('<a href="%s">Clicca Qui</a> per andare alla pagina degli orari dei prof si sostegno'

@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import urllib.parse
-import config
 import subprocess
 import hashlib
 import os
@@ -56,7 +55,7 @@ class Utils:
 
     @staticmethod
     def refresh_main():
-        response = requests.get(config.SCHOOL_WEBSITE)
+        response = requests.get(os.environ["SCHOOL_WEBSITE"])
         if response.status_code != 200:
             print('Failed to request the main page')
             return None
@@ -69,7 +68,7 @@ class Utils:
         for link in links:
             text = link.find('span').text
             if 'Orario' in text and 'lezioni' in text:
-                redirect_url = urllib.parse.urljoin(config.SCHOOL_WEBSITE, link.get('href'))
+                redirect_url = urllib.parse.urljoin(os.environ["SCHOOL_WEBSITE"], link.get('href'))
                 break
 
         blogs_list = []
@@ -77,7 +76,7 @@ class Utils:
         blogs = parsed_html.find_all('p', {'class': 'readmore'})
         for i in range(0, len(blogs)):
             title = blogs_titles[i].text.lstrip().rstrip()
-            link = urllib.parse.urljoin(config.SCHOOL_WEBSITE, blogs[i].find('a').get('href'))
+            link = urllib.parse.urljoin(os.environ["SCHOOL_WEBSITE"], blogs[i].find('a').get('href'))
             blogs_list.append((title, link))
 
         return redirect_url, blogs_list
