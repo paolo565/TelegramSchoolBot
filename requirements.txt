@@ -1,3 +1,5 @@
--e git://github.com/pietroalbini/botogram.git#egg=botogram
+https://github.com/paolobarbolini/botogram/archive/compile-language-files.zip#egg=botogram
+click
 requests
 beautifulsoup4
+pynamodb

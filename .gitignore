@@ -1,5 +1,9 @@
 .idea/
 __pycache__/
-images/
-wkhtmltox/
-database.db
+/build/
+/TelegramSchoolBot.egg-info/
+/dist/
+/config.json
+/.serverless/
+/vendored/
+*.pyc
