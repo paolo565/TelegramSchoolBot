@@ -23,7 +23,7 @@ setuptools.setup(
         "click",
         "requests",
         "beautifulsoup4",
-        "pynamodb",
+        "sqlalchemy",
     ],
 
     dependency_links = [

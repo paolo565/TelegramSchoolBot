@@ -7,7 +7,6 @@ Released under the MIT license
 
 import botogram
 import html
-import pynamodb
 
 from . import models
 from . import utils
@@ -30,7 +29,8 @@ class Commands(botogram.components.Component):
         "classroom": "Aula: %s",
     }
 
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
         self.add_command("start", self.start_command, hidden=True)
         self.add_command("notifiche", self.notification_command, order=10)
         self.add_command("classe", self.class_command, order=20)
@@ -45,18 +45,28 @@ class Commands(botogram.components.Component):
             bot.about,
             "",
             "Utilizza /help per ottenere la lista di tutti i comandi.",
-            "Per ricevere una notifica quando esce un nuovo avviso fai /iscriviti"
+            "Per ricevere una notifica quando esce un nuovo avviso fai /notifiche"
         ]
 
         chat.send("\n".join(lines))
 
 
     def notification_command(self, bot, chat, message, args):
-        """Abilita/Disabilita le notifiche per gli avvisi."""
+        """Abilita/Disabilita le notifiche."""
 
-        try:
-            subscription = models.SubscriberModel.get(chat.id)
-            subscription.delete()
+        session = self.db.Session()
+
+        subscriber = session.query(models.Subscriber).filter(models.Subscriber.chat_id == chat.id).first()
+        if not subscriber:
+            session.add(models.Subscriber(chat_id=chat.id))
+
+            lines = [
+                "Iscrizione alle notifiche completata con successo.",
+                "Ad ogni ora riceverai un messaggio con gli avvisi pubblicati nell'ultima ora se ce ne sono.",
+                "Non bloccare il bot altrimenti sarai disiscritto automaticamente dalle notifiche."
+            ]
+        else:
+            session.delete(subscriber)
 
             lines = [
                 "Disiscrizione dalle notifiche completata con successo.",
@@ -64,19 +74,8 @@ class Commands(botogram.components.Component):
                 "Per riabilitarle fai /notifiche",
             ]
 
-            message.reply("\n".join(lines))
-            return
-        except pynamodb.exceptions.DoesNotExist:
-            pass
+        session.commit()
 
-        lines = [
-            "Iscrizione alle notifiche completata con successo.",
-            "Ad ogni ora riceverai un messaggio con gli avvisi pubblicati nell'ultima ora se ce ne sono.",
-            "Non bloccare il bot altrimenti sarai disiscritto automaticamente dalle notifiche."
-        ]
-
-        subscription = models.SubscriberModel(chat_id=chat.id)
-        subscription.save()
         message.reply("\n".join(lines))
 
 
@@ -92,13 +91,13 @@ class Commands(botogram.components.Component):
             return
 
         name = " ".join(args)
-        try:
-            page = models.PageModel.get("class", name.lower())
-        except pynamodb.exceptions.DoesNotExist:
+        session = self.db.Session()
+        page = session.query(models.Page).filter((models.Page.name.ilike(name)) & (models.Page.type == "class")).first()
+        if not page:
             message.reply("Non ho trovato la classe <b>%s</b>" % html.escape(name), syntax="html")
             return
 
-        utils.send_page(bot, message, page, "Classe: %s" % page.display_name)
+        utils.send_page(self.db, bot, message, page, "Classe: %s" % page.name)
 
 
     def prof_command(self, bot, chat, message, args):
@@ -113,9 +112,9 @@ class Commands(botogram.components.Component):
             return
 
         name = " ".join(args)
-        pages = models.PageModel.query("teacher", name__begins_with=name.lower(), limit=2)
+        session = self.db.Session()
+        pages = session.query(models.Page).filter((models.Page.name.ilike(name + "%")) & (models.Page.type == "teacher")).limit(2)
         pages = list(pages)
-
         if len(pages) == 0:
             message.reply("Non ho trovato il prof <b>%s</b>" % html.escape(name), syntax="html")
             return
@@ -123,7 +122,7 @@ class Commands(botogram.components.Component):
             message.reply("I criteri di ricerca inseriti coincidono con più di un risultato.")
             return
 
-        utils.send_page(bot, message, pages[0], "Prof: %s" % pages[0].display_name)
+        utils.send_page(self.db, bot, message, pages[0], "Prof: %s" % pages[0].name)
 
 
     def classroom_command(self, bot, chat, message, args):
@@ -138,9 +137,9 @@ class Commands(botogram.components.Component):
             return
 
         name = " ".join(args)
-        pages = models.PageModel.query("classroom", name__begins_with=name.lower(), limit=2)
+        session = self.db.Session()
+        pages = session.query(models.Page).filter((models.Page.name.ilike(name + "%")) & (models.Page.type == "classroom")).limit(2)
         pages = list(pages)
-
         if len(pages) == 0:
             message.reply("Non ho trovato l'aula <b>%s</b>" % html.escape(name), syntax="html")
             return
@@ -148,11 +147,11 @@ class Commands(botogram.components.Component):
             message.reply("I criteri di ricerca inseriti coincidono con più di un risultato.")
             return
 
-        utils.send_page(bot, message, pages[0], "Aula: %s" % pages[0].display_name)
+        utils.send_page(self.db, bot, message, pages[0], "Aula: %s" % pages[0].name)
 
 
     def message_received(self, bot, chat, message):
-        query = message.text.lower()
+        query = message.text
         types = []
 
         if message.reply_to_message is not None and message.reply_to_message.text in self.TABLES:
@@ -161,16 +160,11 @@ class Commands(botogram.components.Component):
         else:
             types = self.TABLES.values()
 
+        session = self.db.Session()
+
         for type in types:
-            if type == "class":
-                # Small hack to prevent problems when there's a class like 1H and 1Hs
-                try:
-                    pages = [models.PageModel.get(type, query)]
-                except pynamodb.exceptions.DoesNotExist:
-                    continue
-            else:
-                pages = models.PageModel.query(type, name__begins_with=query, limit=2)
-                pages = list(pages)
+            pages = session.query(models.Page).filter(((models.Page.name.ilike(query + "%")) & (models.Page.type != "class")) | (models.Page.name.ilike(query))).limit(2)
+            pages = list(pages)
 
             if len(pages) == 0:
                 continue
@@ -179,16 +173,15 @@ class Commands(botogram.components.Component):
                 message.reply("I criteri di ricerca inseriti coincidono con più di un risultato.")
                 return
 
-            utils.send_page(bot, message, pages[0], self.TABLE_MESSAGE[pages[0].type] % pages[0].display_name)
+            utils.send_page(self.db, bot, message, pages[0], self.TABLE_MESSAGE[pages[0].type] % pages[0].name)
             return
 
-        message.reply("Non ho trovato niente")
+        message.reply("I criteri di ricerca inseriti non hanno portato a nessun risultato.")
 
 
     def chat_unavailable(self, chat_id):
-        try:
-            subscription = models.SubscriberModel.get(chat_id)
-        except pynamodb.exceptions.DoesNotExist:
-            return
+        session = self.db.Session()
 
-        subscription.delete()
+        if session.query(models.Subscriber).filter(models.Subscriber.chat_id == chat_id).exists():
+            session.delete(subscriber)
+            session.commit()

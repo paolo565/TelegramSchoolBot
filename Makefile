@@ -16,6 +16,10 @@ init: build/env *
 	@build/env/bin/python3 -m telegramschoolbot init
 
 
+initdb: build/env *
+	@build/env/bin/python3 -m telegramschoolbot initdb
+
+
 run: build/env *
 	@build/env/bin/python3 -m telegramschoolbot run
 

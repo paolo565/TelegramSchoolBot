@@ -5,9 +5,9 @@ Copyright (c) 2016-2017 Paolo Barbolini <paolo@paolo565.org>
 Released under the MIT license
 """
 
+from sqlalchemy import func
 from bs4 import BeautifulSoup
 from datetime import datetime
-from delorean import Delorean
 from urllib.parse import urlparse
 import hashlib
 import os
@@ -73,9 +73,9 @@ def prettify_page(html):
     return str(parsed_html)
 
 
-def send_page(bot, message, page, caption):
+def send_page(db, bot, message, page, caption):
     # Was the last check done less than 1 hour ago?
-    if page.cached() and (Delorean().datetime - page.last_check).seconds < 3600:
+    if page.last_check is not None and (datetime.now() - page.last_check).seconds < 3600:
         send_cached_photo(bot, message, page.last_file_id, caption)
         return
 
@@ -84,17 +84,15 @@ def send_page(bot, message, page, caption):
     if response.status_code != 200:
         raise ValueError("Got %i from %s" % (response.status_code, page.url))
 
-    body_md5 = md5(response.text)
-    if page.cached() and page.last_hash == body_md5:
-        # The page didn't change, update the last_check
-        page.update({
-            "last_check": {
-                "action": "put",
-                "value": Delorean().datetime,
-            },
-        })
+    session = db.Session()
 
+    body_md5 = md5(response.text)
+    if page.last_check is not None and page.last_hash == body_md5:
+        # The page didn't change, send a cached photo and update the last_check
         send_cached_photo(bot, message, page.last_file_id, caption)
+
+        page.last_check = func.now()
+        session.commit()
         return
 
     # The page did change, prepare the html file for wkhtmltoimage
@@ -109,21 +107,10 @@ def send_page(bot, message, page, caption):
 
     message = message.reply_with_photo(image_path, caption=caption)
 
-    # Update the cache
-    page.update({
-        "last_file_id": {
-            "action": "put",
-            "value": message.photo.file_id,
-        },
-        "last_hash": {
-            "action": "put",
-            "value": body_md5,
-        },
-        "last_check": {
-            "action": "put",
-            "value": Delorean().datetime,
-        },
-    })
+    page.last_file_id = message.photo.file_id
+    page.last_hash = body_md5
+    page.last_check = func.now()
+    session.commit()
 
     os.remove(html_path)
     os.remove(image_path)

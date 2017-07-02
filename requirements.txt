@@ -2,4 +2,4 @@ https://github.com/paolobarbolini/botogram/archive/compile-language-files.zip#eg
 click
 requests
 beautifulsoup4
-pynamodb
+sqlalchemy

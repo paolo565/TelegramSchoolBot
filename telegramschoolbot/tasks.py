@@ -8,7 +8,6 @@ Released under the MIT license
 from bs4 import BeautifulSoup
 import botogram
 import requests
-import time
 import urllib
 
 from . import models
@@ -20,8 +19,9 @@ class Tasks(botogram.components.Component):
 
     component_name = "tsb-tasks"
 
-    def __init__(self, config):
+    def __init__(self, config, db):
         self.config = config
+        self.db = db
 
         self.add_timer(3600, self.run)
 
@@ -38,10 +38,16 @@ class Tasks(botogram.components.Component):
         left_content = parsed_html.find("div", {"id": "jsn-pleft"})
         left_links = left_content.find_all("a")
         for link in left_links:
-            text = link.find("span").text
-            if "Orario" in text and "lezioni" in text:
-                calendar_article_url = urllib.parse.urljoin(self.config["school_website"], link.get("href"))
-                break
+            tag = link.find("span")
+            if tag is None:
+                continue
+
+            text = tag.text
+            if not ("Orario" in text and "lezioni" in text):
+                continue
+
+            calendar_article_url = urllib.parse.urljoin(self.config["school_website"], link.get("href"))
+            break
 
         # Generate the list of posts
         posts = []
@@ -50,7 +56,7 @@ class Tasks(botogram.components.Component):
         for i in range(0, len(post_urls)):
             title = post_titles[i].text.strip()
             url = urllib.parse.urljoin(self.config["school_website"], post_urls[i].find("a").get("href"))
-            posts.append(models.PostModel(url=url, title=title))
+            posts.append(models.Post(url=url, title=title))
 
         return calendar_article_url, posts
 
@@ -65,7 +71,8 @@ class Tasks(botogram.components.Component):
         post_urls = post_content.find_all("a")
         for link in post_urls:
             href = link.get("href")
-            if not href.startswith("/web_orario") and not href.startswith("/weborario"):
+            lower_href = href.lower()
+            if not lower_href.startswith("/web_orario") and not lower_href.startswith("/weborario"):
                 continue
 
             calendar_url = urllib.parse.urljoin(url, href)
@@ -93,54 +100,36 @@ class Tasks(botogram.components.Component):
             else:
                 continue
 
-            pages.append(models.PageModel(type=type, name=link.text.lower(), display_name=link.text, url=urllib.parse.urljoin(url, href)))
+            pages.append(models.Page(type=type, name=link.text, url=urllib.parse.urljoin(url, href)))
 
         return pages
 
 
     def update_pages_table(self, pages):
-        deletes = []
-        writes = []
+        session = self.db.Session()
 
-        database_pages = models.PageModel.scan()
+        database_pages = session.query(models.Page).all()
         database_pages = list(database_pages)
 
-        # Find rows to delete
-        for database_page in database_pages:
-            website_page = next((page for page in pages if page.type == database_page.type and page.display_name == database_page.display_name and page.url == database_page.url), None)
-            if website_page is None:
-                deletes.append(database_page)
-
-        # Find rows to create
-        for website_page in pages:
-            database_page = next((page for page in database_pages if page.type == website_page.type and page.display_name == website_page.display_name and page.url == website_page.url), None)
+        for page in pages:
+            database_page = next((database_page for database_page in database_pages if page.type == database_page.type and page.name == database_page.name and page.url == database_page.url), None)
             if database_page is None:
-                writes.append(website_page)
+                session.add(page)
 
-        operations = 0
-        with models.PageModel.batch_write() as batch:
-            for delete in deletes:
-                # Small hack to prevent exceding the 2 provisioned write capacity units
-                if operations > 25:
-                    operations = 0
-                    print("Throttling delete to prevent hitting the write limit")
-                    time.sleep(13)
-                batch.delete(delete)
-                operations += 1
+        for database_page in database_pages:
+            website_page = next((page for page in pages if page.type == database_page.type and page.name == database_page.name and page.url == database_page.url), None)
+            if website_page is None:
+                session.delete(website_page)
 
-            for write in writes:
-                if operations > 25:
-                    operations = 0
-                    print("Throttling write to prevent hitting the write limit")
-                    time.sleep(13)
-                batch.save(write)
-                operations += 1
+        session.commit()
 
 
     def update_posts_table_and_notify(self, bot, posts):
         writes = []
-        batch = [post.url for post in posts]
-        database_posts = models.PostModel.batch_get(batch)
+
+        session = self.db.Session()
+        post_urls = [post.url for post in posts]
+        database_posts = session.query(models.Post).filter(models.Post.url.in_(post_urls))
         database_posts = list(database_posts)
 
         for local_post in posts:
@@ -157,32 +146,32 @@ class Tasks(botogram.components.Component):
         else:
             messages.append("<b>Sono usciti i seguenti articoli:</b>")
 
+        session = self.db.Session()
         for write in writes:
             messages.append("▪️ <a href=\"%s\">%s</a>" % (write.url, write.title))
+            session.add(write)
 
         message = "\n".join(messages)
 
         # Send the message to the subscribers
-        for subscriber in models.SubscriberModel.scan():
+        for subscriber in session.query(models.Subscriber).all():
             try:
                 bot.chat(subscriber.chat_id).send(message)
             except botogram.api.ChatUnavailableError:
-                try:
-                    subscription = models.SubscriberModel.get(subscriber.chat_id)
-                except pynamodb.exceptions.DoesNotExist:
-                    continue
+                session.delete(subscriber)
 
-                subscription.delete()
-
-        # Remember the posts we already sent
-        with models.PostModel.batch_write() as batch:
-            for write in writes:
-                batch.save(write)
+        session.commit()
 
 
     def run(self, bot):
         calendar_article_url, posts = self.query_main_page()
-        calendar_url = self.query_calendar_article(calendar_article_url)
-        calendar_pages = self.query_calendar(calendar_url)
+
+        calendar_pages = []
+        if calendar_article_url is not None:
+            calendar_url = self.query_calendar_article(calendar_article_url)
+
+            if calendar_url is not None:
+                calendar_pages = self.query_calendar(calendar_url)
+
         self.update_pages_table(calendar_pages)
         self.update_posts_table_and_notify(bot, posts)
