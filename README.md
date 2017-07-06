@@ -29,7 +29,7 @@ $ sudo apt install build-essential python3-pip git
 $ sudo pip3 install virtualenv
 ```
 
-## Initialization
+## Setup
 All of the configurations are stored in the `config.json` file, to create it run:
 
 ```
@@ -49,19 +49,19 @@ Edit the `config.json`:
 
 The parameters are:
 
-* `telegram_token` is the api key of your telegram bot, you can [generate one here](https://core.telegram.org/bots#6-botfather).
+* `telegram_token` is the api key of your telegram bot, you can [generate one here](https://t.me/BotFather).
 * `school_website` is the url of the homepage of your school website.
 * `owner` is the username on telegram you wish to be contacted.
 * `database_url` is the database connection url (for example `sqlite:///database.db` for a sqlite database)
 
-Now to create the database tables run:
+To create the database tables run:
 
 ```
 $ make initdb
 ```
 
 ## Running the bot
-After having configured the bot you can run it by using:
+To start the bot run the following command:
 
 ```
 $ make run
