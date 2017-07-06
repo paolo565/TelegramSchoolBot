@@ -33,7 +33,8 @@ def init():
     }
 
     with open("config.json", "w") as f:
-        json.dump(config, f)
+        json.dump(config, f, indent=4)
+        f.write("\n")
 
 
 @cli.command()
