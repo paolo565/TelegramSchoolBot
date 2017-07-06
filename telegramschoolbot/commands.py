@@ -180,6 +180,7 @@ class Commands(botogram.components.Component):
     def chat_unavailable(self, chat_id):
         session = self.db.Session()
 
-        if session.query(models.Subscriber).filter(models.Subscriber.chat_id == chat_id).exists():
+        subscriber = session.query(models.Subscriber).filter(models.Subscriber.chat_id == chat.id).first()
+        if subscriber:
             session.delete(subscriber)
             session.commit()
