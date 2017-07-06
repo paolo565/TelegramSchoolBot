@@ -42,7 +42,8 @@ Edit the `config.json`:
 {
   "telegram_token": "BOT-API-KEY",
   "school_website": "URL-OF-YOUR-SCHOOL-WEBSITE",
-  "owner": "@YOUR-TELEGRAM-USERNAME"
+  "owner": "@YOUR-TELEGRAM-USERNAME",
+  "database_url": "THE_DATABASE_URL"
 }
 ```
 
@@ -51,6 +52,7 @@ The parameters are:
 * `telegram_token` is the api key of your telegram bot, you can [generate one here](https://core.telegram.org/bots#6-botfather).
 * `school_website` is the url of the homepage of your school website.
 * `owner` is the username on telegram you wish to be contacted.
+* `database_url` is the database connection url (for example `sqlite:///database.db` for a sqlite database)
 
 Now to create the database tables run:
 

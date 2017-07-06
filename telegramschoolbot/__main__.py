@@ -28,7 +28,8 @@ def init():
     config = {
         "telegram_token": "BOT_TOKEN",
         "school_website": "SCHOOL_WEBSITE_HOMEPAGE_URL",
-        "owner": "@TELEGRAM_BOT_OWNER_USERNAME"
+        "owner": "@TELEGRAM_BOT_OWNER_USERNAME",
+        "database_url": "sqlite:///database.db",
     }
 
     with open("config.json", "w") as f:
@@ -41,7 +42,7 @@ def initdb():
     with open("config.json") as f:
         config = json.load(f)
 
-    engine = create_engine('sqlite:///database.db')
+    engine = create_engine(config["database_url"])
     session = sessionmaker()
     session.configure(bind=engine)
 

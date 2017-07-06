@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 
 import threading
 
-
+# Temporary logging
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
@@ -26,7 +26,7 @@ class Database:
     def Session(self):
         engine = getattr(threadLocal, "engine", None)
         if engine is None:
-            threadLocal.engine = create_engine('sqlite:///database.db')
+            threadLocal.engine = create_engine(self.config["database_url"])
 
         session = getattr(threadLocal, "session", None)
         if session is None:
