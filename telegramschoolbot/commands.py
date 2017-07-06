@@ -45,7 +45,7 @@ class Commands(botogram.components.Component):
             bot.about,
             "",
             "Utilizza /help per ottenere la lista di tutti i comandi.",
-            "Per ricevere una notifica quando esce un nuovo avviso fai /notifiche"
+            "Per ricevere una notifica quando esce un nuovo avviso fai /notifiche",
         ]
 
         chat.send("\n".join(lines))
@@ -63,7 +63,7 @@ class Commands(botogram.components.Component):
             lines = [
                 "Iscrizione alle notifiche completata con successo.",
                 "Ad ogni ora riceverai un messaggio con gli avvisi pubblicati nell'ultima ora se ce ne sono.",
-                "Non bloccare il bot altrimenti sarai disiscritto automaticamente dalle notifiche."
+                "Non bloccare il bot altrimenti sarai disiscritto automaticamente dalle notifiche.",
             ]
         else:
             session.delete(subscriber)
@@ -86,7 +86,7 @@ class Commands(botogram.components.Component):
             message.reply("Di quale classe vuoi sapere l'orario?", syntax="plain",
                           extra=botogram.ForceReply(data={
                               "force_reply": True,
-                              "selective": True
+                              "selective": True,
                           }))
             return
 
@@ -108,7 +108,7 @@ class Commands(botogram.components.Component):
             message.reply("Qual'è il nome del prof di cui vuoi sapere l'orario?", syntax="plain",
                           extra=botogram.ForceReply(data={
                               "force_reply": True,
-                              "selective": True
+                              "selective": True,
                           }))
             return
 
@@ -134,7 +134,7 @@ class Commands(botogram.components.Component):
             message.reply("Di quale aula vuoi sapere l'orario?", syntax="plain",
                           extra=botogram.ForceReply(data={
                               "force_reply": True,
-                              "selective": True
+                              "selective": True,
                           }))
             return
 

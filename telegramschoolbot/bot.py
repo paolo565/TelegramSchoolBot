@@ -9,10 +9,10 @@ import botogram
 import html
 import os
 
-from . import database
 from . import commands
-from . import tasks
+from . import database
 from . import models
+from . import tasks
 from . import utils
 
 
@@ -22,14 +22,14 @@ class TelegramSchoolBot:
     def __init__(self, config):
         self.config = config
         self.db = database.Database(self.config)
+
         self.bot = botogram.create(config["telegram_token"])
         self.bot.lang = "it"
-
         self.bot.owner = config["owner"]
         self.bot.about = "Questo bot ti da gli orari scolastici dal sito " + utils.shorten_url(config["school_website"])
         self.bot.after_help = [
-            "Sai programmare? Questo bot è opensource!",
-            "<a href=\"https://github.com/paolobarbolini/TelegramSchoolBot\">Clicca qui</a> per andare alla pagina github.",
+            "Sai programmare?",
+            "<a href=\"https://github.com/paolobarbolini/TelegramSchoolBot\">Questo bot è opensource!</a>",
         ]
         self.bot.link_preview_in_help = False
 

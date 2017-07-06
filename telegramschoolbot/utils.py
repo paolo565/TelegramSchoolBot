@@ -9,6 +9,7 @@ from sqlalchemy import func
 from bs4 import BeautifulSoup
 from datetime import datetime
 from urllib.parse import urlparse
+
 import hashlib
 import os
 import requests
@@ -74,12 +75,11 @@ def prettify_page(html):
 
 
 def send_page(db, bot, message, page, caption):
-    # Was the last check done less than 1 hour ago?
+    # Did we check if the page changed in the last hour?
     if page.last_check is not None and (datetime.now() - page.last_check).seconds < 3600:
         send_cached_photo(bot, message, page.last_file_id, caption)
         return
 
-    # Get the page
     response = requests.get(page.url, headers=REQUESTS_HEADERS)
     if response.status_code != 200:
         raise ValueError("Got %i from %s" % (response.status_code, page.url))
@@ -87,7 +87,7 @@ def send_page(db, bot, message, page, caption):
     session = db.Session()
 
     body_md5 = md5(response.text)
-    if page.last_check is not None and page.last_hash == body_md5:
+    if page.last_hash == body_md5:
         # The page didn't change, send a cached photo and update the last_check
         send_cached_photo(bot, message, page.last_file_id, caption)
 
@@ -101,17 +101,19 @@ def send_page(db, bot, message, page, caption):
     with open(html_path, "w") as f:
         f.write(prettified_body)
 
-    # Render the html file into a jpeg image (png is a waste because telegram compresses the images)
+    # Render the html file into a jpeg image (png is a waste because telegram compresses the image)
     image_path = "/tmp/tsb-image-%s.jpeg" % body_md5
     subprocess.call(('wkhtmltoimage', '--format', 'jpeg', '--quality', '100', html_path, image_path))
 
     message = message.reply_with_photo(image_path, caption=caption)
 
+    # Update the database with the new telegram file id, the last hash of the html page and the last check
     page.last_file_id = message.photo.file_id
     page.last_hash = body_md5
     page.last_check = func.now()
     session.commit()
 
+    # Remove the temporary files
     os.remove(html_path)
     os.remove(image_path)
 

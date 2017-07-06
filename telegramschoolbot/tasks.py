@@ -66,6 +66,7 @@ class Tasks(botogram.components.Component):
         if response.status_code != 200:
             raise ValueError("Failed to query the calendar article page, website responded with response code: %i" % (response.status_code,))
 
+        # Find the url of the orario facile page
         parsed_html = BeautifulSoup(response.text, "html.parser")
         post_content = parsed_html.find("div", {"id": "jsn-mainbody"})
         post_urls = post_content.find_all("a")
@@ -85,7 +86,7 @@ class Tasks(botogram.components.Component):
             raise ValueError("Failed to query the calendar page, website responded with response code: %i" % (response.status_code,))
 
         pages = []
-
+        # Generate the list of pages about classes, teachers and classrooms
         parsed_html = BeautifulSoup(response.text, "html.parser")
         links = parsed_html.find_all("a")
         for link in links:
@@ -111,15 +112,17 @@ class Tasks(botogram.components.Component):
         database_pages = session.query(models.Page).all()
         database_pages = list(database_pages)
 
+        # Add missing pages
         for page in pages:
-            database_page = next((database_page for database_page in database_pages if page.type == database_page.type and page.name == database_page.name and page.url == database_page.url), None)
-            if database_page is None:
+            exists = any(page.type == database_page.type and page.name == database_page.name and page.url == database_page.url for database_page in database_pages)
+            if not exists:
                 session.add(page)
 
+        # Remove removed pages
         for database_page in database_pages:
-            website_page = next((page for page in pages if page.type == database_page.type and page.name == database_page.name and page.url == database_page.url), None)
-            if website_page is None:
-                session.delete(website_page)
+            exists = any(page.type == database_page.type and page.name == database_page.name and page.url == database_page.url for page in pages)
+            if not exists:
+                session.delete(database_page)
 
         session.commit()
 
@@ -146,10 +149,8 @@ class Tasks(botogram.components.Component):
         else:
             messages.append("<b>Sono usciti i seguenti articoli:</b>")
 
-        session = self.db.Session()
         for write in writes:
             messages.append("▪️ <a href=\"%s\">%s</a>" % (write.url, write.title))
-            session.add(write)
 
         message = "\n".join(messages)
 
@@ -160,12 +161,20 @@ class Tasks(botogram.components.Component):
             except botogram.api.ChatUnavailableError:
                 session.delete(subscriber)
 
+        for write in writes:
+            session.add(write)
+
+        # Commit new pages only at this point because it's better sending
+        # a notification more than one tile rather than skipping some
+        # users because of an unexpected error
         session.commit()
 
 
     def run(self, bot):
         calendar_article_url, posts = self.query_main_page()
 
+        # This default makes all of the classes, teachers and classrooms
+        # go away if we can't find the page listing them
         calendar_pages = []
         if calendar_article_url is not None:
             calendar_url = self.query_calendar_article(calendar_article_url)

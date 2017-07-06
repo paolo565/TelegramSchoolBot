@@ -4,7 +4,6 @@
 all: run
 
 
-# Environment creation
 build/env:
 	@rm -rf build/env
 	@mkdir -p build/env

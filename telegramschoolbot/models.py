@@ -35,6 +35,5 @@ class Post(Base):
 class Subscriber(Base):
     __tablename__ = "subscribers"
 
-
     chat_id = Column(Integer, primary_key=True, autoincrement=False)
     subscribed_at = Column(DateTime, nullable=False, default=func.now())

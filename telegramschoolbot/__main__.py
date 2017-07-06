@@ -8,9 +8,9 @@ Released under the MIT license
 from botogram.objects import Update
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 import click
 import json
-import os.path
 
 from . import bot
 from . import models
@@ -40,13 +40,11 @@ def init():
 @cli.command()
 def initdb():
     """Init the database"""
+
     with open("config.json") as f:
         config = json.load(f)
 
     engine = create_engine(config["database_url"])
-    session = sessionmaker()
-    session.configure(bind=engine)
-
     models.Base.metadata.create_all(engine)
 
 
