@@ -165,7 +165,7 @@ class Tasks(botogram.components.Component):
             session.add(write)
 
         # Commit new pages only at this point because it's better sending
-        # a notification more than one tile rather than skipping some
+        # a notification more than one time rather than skipping some
         # users because of an unexpected error
         session.commit()
 
