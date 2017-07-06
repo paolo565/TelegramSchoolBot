@@ -93,6 +93,7 @@ class Commands(botogram.components.Component):
         name = " ".join(args)
         session = self.db.Session()
         page = session.query(models.Page).filter((models.Page.name.ilike(name)) & (models.Page.type == "class")).first()
+
         if not page:
             message.reply("Non ho trovato la classe <b>%s</b>" % html.escape(name), syntax="html")
             return
@@ -115,6 +116,7 @@ class Commands(botogram.components.Component):
         session = self.db.Session()
         pages = session.query(models.Page).filter((models.Page.name.ilike(name + "%")) & (models.Page.type == "teacher")).limit(2)
         pages = list(pages)
+
         if len(pages) == 0:
             message.reply("Non ho trovato il prof <b>%s</b>" % html.escape(name), syntax="html")
             return
@@ -140,6 +142,7 @@ class Commands(botogram.components.Component):
         session = self.db.Session()
         pages = session.query(models.Page).filter((models.Page.name.ilike(name + "%")) & (models.Page.type == "classroom")).limit(2)
         pages = list(pages)
+
         if len(pages) == 0:
             message.reply("Non ho trovato l'aula <b>%s</b>" % html.escape(name), syntax="html")
             return
@@ -152,31 +155,26 @@ class Commands(botogram.components.Component):
 
     def message_received(self, bot, chat, message):
         query = message.text
-        types = []
-
-        if message.reply_to_message is not None and message.reply_to_message.text in self.TABLES:
-            bot_text = message.reply_to_message.text
-            types = [self.TABLES[bot_text]]
-        else:
-            types = self.TABLES.values()
 
         session = self.db.Session()
 
-        for type in types:
+        if message.reply_to_message is not None and message.reply_to_message.text in self.TABLES:
+            type = self.TABLES[message.reply_to_message.text]
+            pages = session.query(models.Page).filter((models.Page.type == type) & (((models.Page.name.ilike(query + "%")) & (models.Page.type != "class")) | (models.Page.name.ilike(query)))).limit(2)
+        else:
             pages = session.query(models.Page).filter(((models.Page.name.ilike(query + "%")) & (models.Page.type != "class")) | (models.Page.name.ilike(query))).limit(2)
-            pages = list(pages)
 
-            if len(pages) == 0:
-                continue
+        pages = list(pages)
 
-            if len(pages) > 1:
-                message.reply("I criteri di ricerca inseriti coincidono con più di un risultato.")
-                return
-
-            utils.send_page(self.db, bot, message, pages[0], self.TABLE_MESSAGE[pages[0].type] % pages[0].name)
+        if len(pages) == 0:
+            message.reply("I criteri di ricerca inseriti non hanno portato a nessun risultato.")
             return
 
-        message.reply("I criteri di ricerca inseriti non hanno portato a nessun risultato.")
+        if len(pages) > 1:
+            message.reply("I criteri di ricerca inseriti coincidono con più di un risultato.")
+            return
+
+        utils.send_page(self.db, bot, message, pages[0], self.TABLE_MESSAGE[pages[0].type] % pages[0].name)
 
 
     def chat_unavailable(self, chat_id):
