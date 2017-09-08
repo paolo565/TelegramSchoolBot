@@ -30,9 +30,9 @@ class Database:
         if engine is None:
             threadLocal.engine = create_engine(self.config["database_url"])
 
-        session = getattr(threadLocal, "session", None)
-        if session is None:
+        session_factory = getattr(threadLocal, "session_factory", None)
+        if session_factory is None:
             session_factory = sessionmaker(bind=threadLocal.engine)
-            threadLocal.session = scoped_session(session_factory)
+            threadLocal.session_factory = session_factory
 
-        return threadLocal.session()
+        return session_factory()
