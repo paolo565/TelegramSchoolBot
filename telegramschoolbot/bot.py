@@ -26,7 +26,7 @@ class TelegramSchoolBot:
         self.bot = botogram.create(config["telegram_token"])
         self.bot.lang = "it"
         self.bot.owner = config["owner"]
-        self.bot.about = "Questo bot ti da gli orari scolastici dal sito " + utils.shorten_url(config["school_website"])
+        self.bot.about = "Ricevi gli orari scolastici e gli avvisi dal sito " + utils.shorten_url(config["school_website"])
         self.bot.after_help = [
             "Sai programmare?",
             "<a href=\"https://github.com/paolobarbolini/TelegramSchoolBot\">Questo bot è opensource!</a>",

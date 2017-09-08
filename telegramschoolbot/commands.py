@@ -44,7 +44,7 @@ class Commands(botogram.components.Component):
         lines = [
             bot.about,
             "",
-            "Utilizza /help per ottenere la lista di tutti i comandi.",
+            "Utilizza /help per ricevere la lista dei comandi.",
             "Per ricevere una notifica quando esce un nuovo avviso fai /notifiche",
         ]
 
@@ -62,7 +62,7 @@ class Commands(botogram.components.Component):
 
             lines = [
                 "Iscrizione alle notifiche completata con successo.",
-                "Ad ogni ora riceverai un messaggio con gli avvisi pubblicati nell'ultima ora se ce ne sono.",
+                "Entro un'ora dalla pubblicazione di una circolare sul sito riceverai una notifica.",
                 "Non bloccare il bot altrimenti sarai disiscritto automaticamente dalle notifiche.",
             ]
         else:
@@ -70,7 +70,6 @@ class Commands(botogram.components.Component):
 
             lines = [
                 "Disiscrizione dalle notifiche completata con successo.",
-                "Da ora non riceverai più notifiche riguardanti le nuove circolari pubblicate sul sito.",
                 "Per riabilitarle fai /notifiche",
             ]
 
