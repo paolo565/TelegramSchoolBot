@@ -19,15 +19,11 @@ setuptools.setup(
     ],
 
     install_requires = [
-        "botogram==0.4.dev0",
+        "botogram==0.4.0",
         "click",
         "requests",
         "beautifulsoup4",
         "sqlalchemy",
-    ],
-
-    dependency_links = [
-        "https://github.com/paolobarbolini/botogram/archive/compile-language-files.zip#egg=botogram-0.4.dev0"
     ],
 
     entry_points = {

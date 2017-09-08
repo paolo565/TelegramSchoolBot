@@ -1,4 +1,4 @@
-https://github.com/paolobarbolini/botogram/archive/compile-language-files.zip#egg=botogram
+botogram==0.4.0
 click
 requests
 beautifulsoup4
