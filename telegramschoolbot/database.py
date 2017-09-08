@@ -11,9 +11,11 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 import threading
 
 # Temporary logging
+"""
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+"""
 
 
 threadLocal = threading.local()
