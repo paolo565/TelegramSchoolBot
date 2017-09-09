@@ -157,9 +157,18 @@ class Tasks(botogram.components.Component):
         # Send the message to the subscribers
         for subscriber in session.query(models.Subscriber).all():
             try:
-                bot.chat(subscriber.chat_id).send(message)
-            except botogram.api.ChatUnavailableError:
+                chat = bot.chat(subscriber.chat_id)
+                chat.send(message)
+            except botogram.api.ChatUnavailableError as e:
+                print("ChatUnavailableError - Removing subscriber", subscriber.chat_id, str(e))
                 session.delete(subscriber)
+            except botogram.api.APIError as e:
+                # This should fall under the ChatUnavailableError but botogram doesnt recognize it
+                if "deactivated" in e.description:
+                    print("APIError - Removing subscriber", subscriber.chat_id, e.description)
+                    session.delete(subscriber)
+                else:
+                    print(e)
 
         for write in writes:
             session.add(write)
