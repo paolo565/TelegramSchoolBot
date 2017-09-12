@@ -29,7 +29,11 @@ class Tasks(botogram.components.Component):
     def query_main_page(self):
         response = requests.get(self.config["school_website"], headers=utils.REQUESTS_HEADERS)
         if response.status_code != 200:
-            raise ValueError("Failed to query the main page, website responded with response code: %i" % (response.status_code,))
+            raise ValueError("Failed to query the main page, server responded with response code: %i" % (response.status_code,))
+
+        if "text/html" not in response.headers['Content-Type']:
+            print("Failed to query the main page, server responded with content type: %s" % (response.headers['Content-Type'],))
+            return None
 
         parsed_html = BeautifulSoup(response.text, "html.parser")
 
@@ -64,7 +68,11 @@ class Tasks(botogram.components.Component):
     def query_calendar_article(self, url):
         response = requests.get(url, headers=utils.REQUESTS_HEADERS)
         if response.status_code != 200:
-            raise ValueError("Failed to query the calendar article page, website responded with response code: %i" % (response.status_code,))
+            raise ValueError("Failed to query the calendar article page, server responded with response code: %i" % (response.status_code,))
+
+        if "text/html" not in response.headers['Content-Type']:
+            print("Failed to query the calendar article page, server responded with content type: %s" % (response.headers['Content-Type'],))
+            return None
 
         # Find the url of the orario facile page
         parsed_html = BeautifulSoup(response.text, "html.parser")
@@ -83,7 +91,11 @@ class Tasks(botogram.components.Component):
     def query_calendar(self, url):
         response = requests.get(url, headers=utils.REQUESTS_HEADERS)
         if response.status_code != 200:
-            raise ValueError("Failed to query the calendar page, website responded with response code: %i" % (response.status_code,))
+            raise ValueError("Failed to query the calendar page, server responded with response code: %i" % (response.status_code,))
+
+        if "text/html" not in response.headers['Content-Type']:
+            print("Failed to query the calendar page, server responded with content type: %s" % (response.headers['Content-Type'],))
+            return None
 
         pages = []
         # Generate the list of pages about classes, teachers and classrooms
