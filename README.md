@@ -16,17 +16,17 @@ It is licensed under the [MIT License](LICENSE), which basically allows you to d
 ## Required dependencies
 This bot requires the following dependencies to work:
 
-* make (apt: `build-essential`)
+* Make (apt: `build-essential`)
 * Python 3 (apt: `python3`)
 * PIP (apt: `python3-pip`)
-* Virtualenv (apt: `python3-virtualenv`, pip: `virtualenv`)
-* Git (apt: `git`)
+* Virtualenv (apt: `python-virtualenv` pip: `virtualenv`)
+* wkhtmltopdf (apt: `wkhtmltopdf`)
+* Xvfb (apt: `xvfb`)
 
 You can easily install them with the following commands:
 
 ```
-$ sudo apt install build-essential python3-pip git
-$ sudo pip3 install virtualenv
+$ sudo apt install build-essential python3 python3-pip python-virtualenv wkhtmltopdf xvfb
 ```
 
 ## Setup
