@@ -90,6 +90,8 @@ def send_page(db, bot, message, page, caption):
         raise ValueError("Got %i from %s" % (response.status_code, page.url))
 
     session = db.Session()
+    session = session.object_session(page)
+    session.add(page)
 
     body_md5 = md5(response.text)
     if page.last_hash == body_md5:
