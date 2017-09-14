@@ -31,6 +31,7 @@ class Commands(botogram.components.Component):
 
     def __init__(self, db):
         self.db = db
+        self.add_before_processing_hook(self.log_request)
         self.add_command("start", self.start_command, hidden=True)
         self.add_command("notifiche", self.notification_command, order=10)
         self.add_command("classe", self.class_command, order=20)
@@ -38,6 +39,18 @@ class Commands(botogram.components.Component):
         self.add_command("aula", self.classroom_command, order=40)
         self.add_process_message_hook(self.message_received)
         self.add_chat_unavailable_hook(self.chat_unavailable)
+
+
+    def log_request(self, chat, message):
+        if message.text is None:
+            return False
+
+        print('"%i" "%s" "%s" "%s"' % (
+            chat.id,
+            message.sender.name if message.sender.username is None else "@" + message.sender.username,
+            '-' if chat.title is None else chat.title,
+            message.text
+        ))
 
 
     def start_command(self, bot, chat):
