@@ -108,7 +108,7 @@ def send_page(db, bot, message, page, caption):
 
     # Render the html file into a jpeg image (png is a waste because telegram compresses the image)
     image_path = "/tmp/tsb-image-%s.jpeg" % body_md5
-    subprocess.call(('wkhtmltoimage', '--format', 'jpeg', '--quality', '100', html_path, image_path))
+    subprocess.call(('xvfb-run', 'wkhtmltoimage', '--format', 'jpeg', '--quality', '100', html_path, image_path))
 
     message = message.reply_with_photo(image_path, caption=caption)
 
