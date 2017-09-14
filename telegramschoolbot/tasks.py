@@ -38,7 +38,7 @@ class Tasks(botogram.components.Component):
         parsed_html = BeautifulSoup(response.text, "html.parser")
 
         # Find the url of the calendar article
-        calendar_article_url = None
+        calendar_articles = []
         left_content = parsed_html.find("div", {"id": "jsn-pleft"})
         left_links = left_content.find_all("a")
         for link in left_links:
@@ -50,8 +50,7 @@ class Tasks(botogram.components.Component):
             if not ("Orario" in text and "lezioni" in text):
                 continue
 
-            calendar_article_url = urllib.parse.urljoin(self.config["school_website"], link.get("href"))
-            break
+            calendar_articles.append(urllib.parse.urljoin(self.config["school_website"], link.get("href")))
 
         # Generate the list of posts
         posts = []
@@ -62,7 +61,7 @@ class Tasks(botogram.components.Component):
             url = urllib.parse.urljoin(self.config["school_website"], post_urls[i].find("a").get("href"))
             posts.append(models.Post(url=url, title=title))
 
-        return calendar_article_url, posts
+        return calendar_articles, posts
 
 
     def query_calendar_article(self, url):
@@ -192,16 +191,19 @@ class Tasks(botogram.components.Component):
 
 
     def run(self, bot):
-        calendar_article_url, posts = self.query_main_page()
+        calendar_articles, posts = self.query_main_page()
 
         # This default makes all of the classes, teachers and classrooms
         # go away if we can't find the page listing them
         calendar_pages = []
-        if calendar_article_url is not None:
-            calendar_url = self.query_calendar_article(calendar_article_url)
+        for article in calendar_articles:
+            calendar_url = self.query_calendar_article(article)
 
-            if calendar_url is not None:
-                calendar_pages = self.query_calendar(calendar_url)
+            if calendar_url is None:
+                continue
+
+            calendar_pages = self.query_calendar(calendar_url)
+            break
 
         self.update_pages_table(calendar_pages)
         self.update_posts_table_and_notify(bot, posts)

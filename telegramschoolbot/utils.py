@@ -9,6 +9,7 @@ from sqlalchemy import func
 from bs4 import BeautifulSoup
 from datetime import datetime
 from urllib.parse import urlparse
+import urllib
 
 import hashlib
 import os
@@ -35,11 +36,15 @@ def send_cached_photo(bot, message, file_id, caption):
     bot.api.call("sendPhoto", args)
 
 
-def prettify_page(html):
+def prettify_page(page_url, html):
     parsed_html = BeautifulSoup(html, "html.parser")
 
+    # Find all images
+    for img in parsed_html.find_all("img"):
+        img["src"] = urllib.parse.urljoin(page_url, img["src"])
+
     # Remove the default styles
-    for p in parsed_html.find_all('style'):
+    for p in parsed_html.find_all("style"):
         p.decompose()
 
     # Custom css
@@ -97,7 +102,7 @@ def send_page(db, bot, message, page, caption):
 
     # The page did change, prepare the html file for wkhtmltoimage
     html_path = "/tmp/tsb-body-%s.html" % body_md5
-    prettified_body = prettify_page(response.text)
+    prettified_body = prettify_page(page.url, response.text)
     with open(html_path, "w") as f:
         f.write(prettified_body)
 
