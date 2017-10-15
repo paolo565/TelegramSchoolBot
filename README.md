@@ -1,4 +1,4 @@
-# TelegramSchoolBot [![MIT License](https://img.shields.io/github/license/paolobarbolini/TelegramSchoolBot.svg?maxAge=2592000)](LICENSE)
+# TelegramSchoolBot [![MIT License](https://img.shields.io/github/license/paolobarbolini/TelegramSchoolBot.svg?maxAge=2592000)](LICENSE) [![Build Status](https://travis-ci.org/paolobarbolini/TelegramSchoolBot.svg?branch=master)](https://travis-ci.org/paolobarbolini/TelegramSchoolBot)
 _Interact with your school website with telegram!_
 
 This bot was created to simplify the interaction with my school's website by using telegram.
