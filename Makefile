@@ -11,6 +11,11 @@ build/env:
 	@build/env/bin/python3 setup.py install
 
 
+lint: build/env *
+	@build/env/bin/python3 -m pip install flake8
+	@build/env/bin/python3 -m flake8 --select=E,W,F,C9,N8 telegramschoolbot
+
+
 init: build/env *
 	@build/env/bin/python3 -m telegramschoolbot init
 

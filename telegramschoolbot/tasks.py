@@ -25,14 +25,18 @@ class Tasks(botogram.components.Component):
 
         self.add_timer(3600, self.run)
 
-
     def query_main_page(self):
-        response = requests.get(self.config["school_website"], headers=utils.REQUESTS_HEADERS)
+        response = requests.get(self.config["school_website"],
+                                headers=utils.REQUESTS_HEADERS)
         if response.status_code != 200:
-            raise ValueError("Failed to query the main page, server responded with response code: %i" % (response.status_code,))
+            raise ValueError("Failed to query the main page,"
+                             " server responded with response code: %i" %
+                             response.status_code)
 
         if "text/html" not in response.headers['Content-Type']:
-            print("Failed to query the main page, server responded with content type: %s" % (response.headers['Content-Type'],))
+            print("Failed to query the main page,"
+                  " server responded with content type: %s" %
+                  response.headers['Content-Type'])
             return None
 
         parsed_html = BeautifulSoup(response.text, "html.parser")
@@ -50,7 +54,9 @@ class Tasks(botogram.components.Component):
             if not ("Orario" in text and "lezioni" in text):
                 continue
 
-            calendar_articles.append(urllib.parse.urljoin(self.config["school_website"], link.get("href")))
+            url = urllib.parse.urljoin(self.config["school_website"],
+                                       link.get("href"))
+            calendar_articles.append(url)
 
         # Generate the list of posts
         posts = []
@@ -58,19 +64,23 @@ class Tasks(botogram.components.Component):
         post_urls = parsed_html.find_all("p", {"class": "readmore"})
         for i in range(0, len(post_urls)):
             title = post_titles[i].text.strip()
-            url = urllib.parse.urljoin(self.config["school_website"], post_urls[i].find("a").get("href"))
+            url = urllib.parse.urljoin(self.config["school_website"],
+                                       post_urls[i].find("a").get("href"))
             posts.append(models.Post(url=url, title=title))
 
         return calendar_articles, posts
 
-
     def query_calendar_article(self, url):
         response = requests.get(url, headers=utils.REQUESTS_HEADERS)
         if response.status_code != 200:
-            raise ValueError("Failed to query the calendar article page, server responded with response code: %i" % (response.status_code,))
+            raise ValueError("Failed to query the calendar article page,"
+                             " server responded with response code: %i" %
+                             response.status_code)
 
         if "text/html" not in response.headers['Content-Type']:
-            print("Failed to query the calendar article page, server responded with content type: %s" % (response.headers['Content-Type'],))
+            print("Failed to query the calendar article page,"
+                  " server responded with content type: %s" %
+                  response.headers['Content-Type'])
             return None
 
         # Find the url of the orario facile page
@@ -80,20 +90,24 @@ class Tasks(botogram.components.Component):
         for link in post_urls:
             href = link.get("href")
             lower_href = href.lower()
-            if not lower_href.startswith("/web_orario") and not lower_href.startswith("/weborario"):
+            if not lower_href.startswith("/web_orario") and\
+               not lower_href.startswith("/weborario"):
                 continue
 
             calendar_url = urllib.parse.urljoin(url, href)
             return calendar_url
 
-
     def query_calendar(self, url):
         response = requests.get(url, headers=utils.REQUESTS_HEADERS)
         if response.status_code != 200:
-            raise ValueError("Failed to query the calendar page, server responded with response code: %i" % (response.status_code,))
+            raise ValueError("Failed to query the calendar page,"
+                             " server responded with response code: %i" %
+                             response.status_code)
 
         if "text/html" not in response.headers['Content-Type']:
-            print("Failed to query the calendar page, server responded with content type: %s" % (response.headers['Content-Type'],))
+            print("Failed to query the calendar page,"
+                  " server responded with content type: %s" %
+                  response.headers['Content-Type'])
             return None
 
         pages = []
@@ -112,10 +126,10 @@ class Tasks(botogram.components.Component):
             else:
                 continue
 
-            pages.append(models.Page(type=type, name=link.text, url=urllib.parse.urljoin(url, href)))
+            pages.append(models.Page(type=type, name=link.text,
+                                     url=urllib.parse.urljoin(url, href)))
 
         return pages
-
 
     def update_pages_table(self, pages):
         session = self.db.Session()
@@ -125,29 +139,36 @@ class Tasks(botogram.components.Component):
 
         # Add missing pages
         for page in pages:
-            exists = any(page.type == database_page.type and page.name == database_page.name and page.url == database_page.url for database_page in database_pages)
+            exists = any(page.type == database_page.type and
+                         page.name == database_page.name and
+                         page.url == database_page.url for
+                         database_page in database_pages)
             if not exists:
                 session.add(page)
 
         # Remove removed pages
         for database_page in database_pages:
-            exists = any(page.type == database_page.type and page.name == database_page.name and page.url == database_page.url for page in pages)
+            exists = any(page.type == database_page.type and
+                         page.name == database_page.name and
+                         page.url == database_page.url for
+                         page in pages)
             if not exists:
                 session.delete(database_page)
 
         session.commit()
-
 
     def update_posts_table_and_notify(self, bot, posts):
         writes = []
 
         session = self.db.Session()
         post_urls = [post.url for post in posts]
-        database_posts = session.query(models.Post).filter(models.Post.url.in_(post_urls))
+        database_posts = session.query(models.Post).\
+            filter(models.Post.url.in_(post_urls))
         database_posts = list(database_posts)
 
         for local_post in posts:
-            if not any(local_post.url == database_post.url for database_post in database_posts):
+            if not any(local_post.url == database_post.url for
+                       database_post in database_posts):
                 writes.append(local_post)
 
         if len(writes) == 0:
@@ -161,7 +182,8 @@ class Tasks(botogram.components.Component):
             messages.append("<b>Sono usciti i seguenti articoli:</b>")
 
         for write in writes:
-            messages.append("▪️ <a href=\"%s\">%s</a>" % (write.url, write.title))
+            messages.append("▪️ <a href=\"%s\">%s</a>" %
+                            (write.url, write.title))
 
         message = "\n".join(messages)
 
@@ -171,12 +193,15 @@ class Tasks(botogram.components.Component):
                 chat = bot.chat(subscriber.chat_id)
                 chat.send(message)
             except botogram.api.ChatUnavailableError as e:
-                print("ChatUnavailableError - Removing subscriber", subscriber.chat_id, str(e))
+                print("ChatUnavailableError - Removing subscriber",
+                      subscriber.chat_id, str(e))
                 session.delete(subscriber)
             except botogram.api.APIError as e:
-                # This should fall under the ChatUnavailableError but botogram doesnt recognize it
+                # This should fall under the ChatUnavailableError
+                # but botogram doesnt recognize it
                 if "deactivated" in e.description:
-                    print("APIError - Removing subscriber", subscriber.chat_id, e.description)
+                    print("APIError - Removing subscriber",
+                          subscriber.chat_id, e.description)
                     session.delete(subscriber)
                 else:
                     print(e)
@@ -188,7 +213,6 @@ class Tasks(botogram.components.Component):
         # a notification more than one time rather than skipping some
         # users because of an unexpected error
         session.commit()
-
 
     def run(self, bot):
         calendar_articles, posts = self.query_main_page()
