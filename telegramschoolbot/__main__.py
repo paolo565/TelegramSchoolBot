@@ -5,9 +5,7 @@ Copyright (c) 2016-2017 Paolo Barbolini <paolo@paolo565.org>
 Released under the MIT license
 """
 
-from botogram.objects import Update
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 import click
 import json

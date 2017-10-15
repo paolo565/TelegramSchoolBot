@@ -18,7 +18,8 @@ import subprocess
 
 
 REQUESTS_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; TelegramSchoolBot/2.0; +https://github.com/paolobarbolini/TelegramSchoolBot)"
+    "User-Agent": "Mozilla/5.0 (compatible; TelegramSchoolBot/2.0; "
+                  "+https://github.com/paolobarbolini/TelegramSchoolBot)"
 }
 
 
@@ -81,7 +82,8 @@ def prettify_page(page_url, html):
 
 def send_page(db, bot, message, page, caption):
     # Did we check if the page changed in the last hour?
-    if page.last_check is not None and (datetime.now() - page.last_check).seconds < 3600:
+    if page.last_check is not None and \
+       (datetime.now() - page.last_check).seconds < 3600:
         send_cached_photo(bot, message, page.last_file_id, caption)
         return
 
@@ -95,7 +97,8 @@ def send_page(db, bot, message, page, caption):
 
     body_md5 = md5(response.text)
     if page.last_hash == body_md5:
-        # The page didn't change, send a cached photo and update the last_check
+        # The page didn't change, send a cached photo
+        # and update the last_check
         send_cached_photo(bot, message, page.last_file_id, caption)
 
         page.last_check = func.now()
@@ -108,13 +111,17 @@ def send_page(db, bot, message, page, caption):
     with open(html_path, "w") as f:
         f.write(prettified_body)
 
-    # Render the html file into a jpeg image (png is a waste because telegram compresses the image)
+    # Render the html file into a jpeg image
+    # (png is a waste because telegram compresses the image)
     image_path = "/tmp/tsb-image-%s.jpeg" % body_md5
-    subprocess.call(('xvfb-run', 'wkhtmltoimage', '--format', 'jpeg', '--quality', '100', html_path, image_path))
+    subprocess.call(("xvfb-run", "wkhtmltoimage",
+                     "--format", "jpeg", "--quality", "100",
+                     html_path, image_path))
 
     message = message.reply_with_photo(image_path, caption=caption)
 
-    # Update the database with the new telegram file id, the last hash of the html page and the last check
+    # Update the database with the new telegram file id,
+    # the last hash of the html page and the last check
     page.last_file_id = message.photo.file_id
     page.last_hash = body_md5
     page.last_check = func.now()
