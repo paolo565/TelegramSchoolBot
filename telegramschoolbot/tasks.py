@@ -99,6 +99,13 @@ class Tasks(botogram.components.Component):
                not lower_href.startswith("/weborario"):
                 continue
 
+            # For some reason they decided to hide old links
+            # instead of removing them, but the bot doesn't know the difference
+            # so it would never pick up the new calendar url
+            # Sometimes i think that they are fucking with us.
+            if len(link.getText()) < 3:
+                continue
+
             calendar_url = urllib.parse.urljoin(url, href)
             return calendar_url
 
