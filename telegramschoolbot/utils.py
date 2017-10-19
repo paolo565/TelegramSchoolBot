@@ -83,8 +83,8 @@ def send_page(db, bot, message, page, caption):
     # Add the If-Modified-Since header if we have an already cached image.
     # With this header if the file didn't change since the last check
     # the server will reply with a 304 response code
-    if page.last_file_id is not None:
-        nowstr = page.last_check.strftime("%a, %d %b %Y %H:%M:%S GMT")
+    if page.last_update is not None:
+        nowstr = page.last_update.strftime("%a, %d %b %Y %H:%M:%S GMT")
         headers["If-Modified-Since"] = nowstr
 
     response = requests.get(page.url, headers=headers)
@@ -123,7 +123,7 @@ def send_page(db, bot, message, page, caption):
     # Update the database with the new telegram file id and the last time
     # we checked for changes
     page.last_file_id = message.photo.file_id
-    page.last_check = datetime.utcnow()
+    page.last_check = page.last_update = datetime.utcnow()
     session.commit()
 
     # Remove the temporary files

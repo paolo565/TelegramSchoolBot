@@ -20,6 +20,7 @@ class Page(Base):
     url = Column(String(55), nullable=False)
     last_file_id = Column(String(32), nullable=True, default=None)
     last_check = Column(DateTime, nullable=True, default=None)
+    last_update = Column(DateTime, nullable=True, default=None)
 
 
 class Post(Base):
