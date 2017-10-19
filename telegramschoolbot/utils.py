@@ -88,7 +88,6 @@ def send_page(db, bot, message, page, caption):
         headers["If-Modified-Since"] = nowstr
 
     response = requests.get(page.url, headers=headers)
-    print(response.status_code)
     if response.status_code != 200 and response.status_code != 304:
         raise ValueError("Got %i from %s" % (response.status_code, page.url))
 
