@@ -5,26 +5,14 @@ Copyright (c) 2016-2017 Paolo Barbolini <paolo@paolo565.org>
 Released under the MIT license
 """
 
-from sqlalchemy import func
 from bs4 import BeautifulSoup
 from datetime import datetime
 from urllib.parse import urlparse
 import urllib
 
-import hashlib
 import os
 import requests
 import subprocess
-
-
-REQUESTS_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; TelegramSchoolBot/2.0; "
-                  "+https://github.com/paolobarbolini/TelegramSchoolBot)"
-}
-
-
-def md5(text):
-    return hashlib.md5(text.encode("utf-8")).hexdigest()
 
 
 def send_cached_photo(bot, message, file_id, caption):
@@ -83,48 +71,58 @@ def prettify_page(page_url, html):
 def send_page(db, bot, message, page, caption):
     # Did we check if the page changed in the last hour?
     if page.last_check is not None and \
-       (datetime.now() - page.last_check).seconds < 3600:
+       (datetime.utcnow() - page.last_check).seconds < 3600:
         send_cached_photo(bot, message, page.last_file_id, caption)
         return
 
-    response = requests.get(page.url, headers=REQUESTS_HEADERS)
-    if response.status_code != 200:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; TelegramSchoolBot/2.0; "
+                      "+https://github.com/paolobarbolini/TelegramSchoolBot)",
+    }
+
+    # Add the If-Modified-Since header if we have an already cached image.
+    # With this header if the file didn't change since the last check
+    # the server will reply with a 304 response code
+    if page.last_file_id is not None:
+        nowstr = page.last_check.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        headers["If-Modified-Since"] = nowstr
+
+    response = requests.get(page.url, headers=headers)
+    print(response.status_code)
+    if response.status_code != 200 and response.status_code != 304:
         raise ValueError("Got %i from %s" % (response.status_code, page.url))
 
     session = db.Session()
     session = session.object_session(page)
     session.add(page)
 
-    body_md5 = md5(response.text)
-    if page.last_hash == body_md5:
-        # The page didn't change, send a cached photo
-        # and update the last_check
+    if response.status_code == 304:
+        # The page didn't change, send a cached photo and update the last_check
         send_cached_photo(bot, message, page.last_file_id, caption)
 
-        page.last_check = func.now()
+        page.last_check = datetime.utcnow()
         session.commit()
         return
 
     # The page did change, prepare the html file for wkhtmltoimage
-    html_path = "/tmp/tsb-body-%s.html" % body_md5
+    html_path = "/tmp/tsb-body-%i.html" % page.id
     prettified_body = prettify_page(page.url, response.text)
     with open(html_path, "w") as f:
         f.write(prettified_body)
 
     # Render the html file into a jpeg image
     # (png is a waste because telegram compresses the image)
-    image_path = "/tmp/tsb-image-%s.jpeg" % body_md5
+    image_path = "/tmp/tsb-image-%i.jpeg" % page.id
     subprocess.call(("xvfb-run", "wkhtmltoimage",
                      "--format", "jpeg", "--quality", "100",
                      html_path, image_path))
 
     message = message.reply_with_photo(image_path, caption=caption)
 
-    # Update the database with the new telegram file id,
-    # the last hash of the html page and the last check
+    # Update the database with the new telegram file id and the last time
+    # we checked for changes
     page.last_file_id = message.photo.file_id
-    page.last_hash = body_md5
-    page.last_check = func.now()
+    page.last_check = datetime.utcnow()
     session.commit()
 
     # Remove the temporary files

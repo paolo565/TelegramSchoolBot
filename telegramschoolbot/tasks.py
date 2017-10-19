@@ -11,7 +11,12 @@ import requests
 import urllib
 
 from . import models
-from . import utils
+
+
+REQUESTS_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; TelegramSchoolBot/2.0; "
+                  "+https://github.com/paolobarbolini/TelegramSchoolBot)",
+}
 
 
 class Tasks(botogram.components.Component):
@@ -27,7 +32,7 @@ class Tasks(botogram.components.Component):
 
     def query_main_page(self):
         response = requests.get(self.config["school_website"],
-                                headers=utils.REQUESTS_HEADERS)
+                                headers=REQUESTS_HEADERS)
         if response.status_code != 200:
             raise ValueError("Failed to query the main page,"
                              " server responded with response code: %i" %
@@ -71,7 +76,7 @@ class Tasks(botogram.components.Component):
         return calendar_articles, posts
 
     def query_calendar_article(self, url):
-        response = requests.get(url, headers=utils.REQUESTS_HEADERS)
+        response = requests.get(url, headers=REQUESTS_HEADERS)
         if response.status_code != 200:
             raise ValueError("Failed to query the calendar article page,"
                              " server responded with response code: %i" %
@@ -98,7 +103,7 @@ class Tasks(botogram.components.Component):
             return calendar_url
 
     def query_calendar(self, url):
-        response = requests.get(url, headers=utils.REQUESTS_HEADERS)
+        response = requests.get(url, headers=REQUESTS_HEADERS)
         if response.status_code != 200:
             raise ValueError("Failed to query the calendar page,"
                              " server responded with response code: %i" %

@@ -19,7 +19,6 @@ class Page(Base):
     name = Column(String(32), nullable=False)
     url = Column(String(55), nullable=False)
     last_file_id = Column(String(32), nullable=True, default=None)
-    last_hash = Column(String(32), nullable=True, default=None)
     last_check = Column(DateTime, nullable=True, default=None)
 
 
