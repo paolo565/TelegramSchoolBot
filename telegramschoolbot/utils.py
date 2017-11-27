@@ -44,7 +44,7 @@ def prettify_page(page_url, html):
             text-decoration: none;
             text-transform: uppercase;
             font-family: 'Designosaur';
-            font-size: 12pt;
+            font-size: 9pt;
         }
 
         .nodecBlack {
@@ -54,16 +54,34 @@ def prettify_page(page_url, html):
         .nodecWhite {
             color: #FFFFFF;
         }
+
+        td {
+            padding: 10px;
+        }
+
+        center:first-of-type,
+        center:last-of-type,
+        .mathema p,
+        #mathema {
+            display: none;
+        }
+
+        .nodecBlack, .nodecWhite {
+          max-height: 20px;
+        }
+
+         #nodecBlack, #nodecWhite {
+          height: 10px;
+          max-height: 10px;
+        }
+
+        p {
+          margin: 0;
+          margin-top: 5px;
+          padding: 0;
+        }
     """
     parsed_html.html.head.contents.insert(0, custom_style)
-
-    # Remove text outsite the table
-    for p in parsed_html.select('center p[class="mathema"]'):
-        p.decompose()
-
-    # Remove big empty rows
-    for p in parsed_html.select('center p[id="mathema"]'):
-        p.decompose()
 
     return str(parsed_html)
 
