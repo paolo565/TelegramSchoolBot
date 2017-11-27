@@ -19,7 +19,7 @@ class Commands(botogram.components.Component):
 
     TABLES = {
         "Di quale classe vuoi sapere l'orario?": "class",
-        "Qual'è il nome del prof di cui vuoi sapere l'orario?": "teacher",
+        "Qual'è il prof di cui vuoi sapere l'orario?": "teacher",
         "Di quale aula vuoi sapere l'orario?": "classroom",
     }
 
@@ -178,19 +178,19 @@ class Commands(botogram.components.Component):
 
         session = self.db.Session()
 
-        if message.reply_to_message is not None and \
-           message.reply_to_message.text in self.TABLES:
+        if message.reply_to_message is not None:
+            # If the message isn't a reply to the bot's question asking for
+            # the name of the teacher, the class or the classroom ignore
+            # the message
+            if message.reply_to_message.text not in self.TABLES:
+                return
+
             type = self.TABLES[message.reply_to_message.text]
             pages = session.query(models.Page).\
                 filter((models.Page.type == type) &
                        (((models.Page.name.ilike(query + "%")) &
                         (models.Page.type != "class")) |
                         (models.Page.name.ilike(query)))).limit(2)
-        else:
-            pages = session.query(models.Page).\
-                filter(((models.Page.name.ilike(query + "%")) &
-                        (models.Page.type != "class")) |
-                       (models.Page.name.ilike(query))).limit(2)
 
         pages = list(pages)
 
