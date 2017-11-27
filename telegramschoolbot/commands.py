@@ -191,6 +191,11 @@ class Commands(botogram.components.Component):
                        (((models.Page.name.ilike(query + "%")) &
                         (models.Page.type != "class")) |
                         (models.Page.name.ilike(query)))).limit(2)
+        else:
+            pages = session.query(models.Page).\
+                filter(((models.Page.name.ilike(query + "%")) &
+                        (models.Page.type != "class")) |
+                       (models.Page.name.ilike(query))).limit(2)
 
         pages = list(pages)
 
