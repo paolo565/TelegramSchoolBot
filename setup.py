@@ -19,7 +19,7 @@ setuptools.setup(
     ],
 
     install_requires = [
-        "botogram==0.4.0",
+        "botogram==0.5.0",
         "click",
         "requests",
         "beautifulsoup4",
