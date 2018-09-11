@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
 
     name = "TelegramSchoolBot",
-    version = "2.0",
+    version = "3.0",
     url = "https://github.com/paolobarbolini/TelegramSchoolBot",
 
     license = "MIT",
