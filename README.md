@@ -1,17 +1,25 @@
-# TelegramSchoolBot [![MIT License](https://img.shields.io/github/license/paolobarbolini/TelegramSchoolBot.svg?maxAge=2592000)](LICENSE) [![Build Status](https://travis-ci.org/paolobarbolini/TelegramSchoolBot.svg?branch=master)](https://travis-ci.org/paolobarbolini/TelegramSchoolBot)
-_Interact with your school website with telegram!_
+# TelegramSchoolBot [![MIT License][licenseicon]](LICENSE) [![Build Status][travisicon]][travis]
+_Interact with your school's website with Telegram!_
 
-This bot was created to simplify the interaction with my school's website by using telegram.
+This bot was created to simplify the interaction with my
+school's website by using Telegram.
 
-It allows us to check the school hours of a class, a teacher or a classroom and to optionally receive notifications when new announcements are posted on their website.
+It allows us to check the school hours for classes, teachers and
+classrooms and optionally receive notifications when
+new announcements are posted on their website.
 
 ## Compatibility
-This bot has only been tested on my school's website which is using the [Yoomla CMS](https://www.joomla.org/) with the [JSN Epic](https://www.joomlashine.com/joomla-templates/jsn-epic-joomla-template-details.html) template.
-The bot searches for and article on the left side of the screen which contains a link pointing to a page created with [Orario Facile 8](https://www.orariofacile.com/).
-The path to the page created with ``Orario Facile`` must start with ``/web_orario`` or ``/weborario``.
+This bot has only been tested on my school's website which is using
+the [Yoomla CMS][yoomla] with the [JSN Epic template][jsnepic].
 
-It is licensed under the [MIT License](LICENSE), which basically allows you to do whatever you want with it as long as you preserve the copyright and license notices.
+The bot searches for and article on the left side of the screen
+which contains a link pointing to a page created with [Orario Facile 8][orariofacile].
 
+The path to the page created with Orario Facile must start with ``/web_orario`` or ``/weborario``.
+
+It is licensed under the [MIT License](LICENSE), which basically
+allows you to do whatever you want with it as long as
+you preserve the copyright and license notices.
 
 ## Required dependencies
 This bot requires the following dependencies to work:
@@ -30,13 +38,13 @@ $ sudo apt install build-essential python3 python3-pip python-virtualenv wkhtmlt
 ```
 
 ## Setup
-All of the configurations are stored in the `config.json` file, to create it run:
+All of the configurations are stored in `config.json`, to create it run:
 
 ```
 $ make init
 ```
 
-Edit the `config.json`:
+Edit `config.json`:
 
 ```json
 {
@@ -67,9 +75,12 @@ To start the bot run the following command:
 $ make run
 ```
 
-The first time it will take a few minutes to start because it has to build the virtualenv and install the dependencies.
+The first time it will take a few minutes to start because it has to
+build the virtualenv and install the dependencies.
 
-## Contributing
-I highly appreciate your contributions in the matter of fixing bugs and optimizing the bot source code, but i won't accept your pull request if it adds features that i don't want to get added to it or if it breaks compatibility with my school website.
-
-If you want to talk to me about a feature you would like to add please open an issue and i will answer to you as soon as possible.
+[licenseicon]: https://img.shields.io/github/license/paolobarbolini/TelegramSchoolBot.svg?maxAge=2592000
+[travisicon]: https://travis-ci.org/paolobarbolini/TelegramSchoolBot.svg?branch=master
+[travis]: https://travis-ci.org/paolobarbolini/TelegramSchoolBot
+[yoomla]: https://www.joomla.org
+[jsnepic]: https://www.joomlashine.com/joomla-templates/jsn-epic.html
+[orariofacile]: https://www.orariofacile.com
