@@ -2,6 +2,7 @@ image: python:3.5
 
 test:
   before_script:
+  - pip install virtualenv
   - make build/env
   script:
   - make lint
