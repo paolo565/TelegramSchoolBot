@@ -15,16 +15,6 @@ import requests
 import subprocess
 
 
-def send_cached_photo(bot, message, file_id, caption):
-    args = {
-        "chat_id": message.chat.id,
-        "reply_to_message_id": message.message_id,
-        "photo": file_id,
-        "caption": caption,
-    }
-    bot.api.call("sendPhoto", args)
-
-
 def prettify_page(page_url, html):
     parsed_html = BeautifulSoup(html, "html.parser")
 
@@ -90,7 +80,7 @@ def send_page(db, bot, message, page, caption):
     # Did we check if the page changed in the last hour?
     if page.last_check is not None and \
        (datetime.utcnow() - page.last_check).seconds < 3600:
-        send_cached_photo(bot, message, page.last_file_id, caption)
+        message.reply_with_photo(file_id=page.last_file_id, caption=caption)
         return
 
     headers = {
@@ -117,7 +107,7 @@ def send_page(db, bot, message, page, caption):
 
     if response.status_code == 304:
         # The page didn't change, send a cached photo and update the last_check
-        send_cached_photo(bot, message, page.last_file_id, caption)
+        message.reply_with_photo(file_id=page.last_file_id, caption=caption)
 
         page.last_check = datetime.utcnow()
         session.commit()
@@ -136,7 +126,7 @@ def send_page(db, bot, message, page, caption):
                      "--format", "jpeg", "--quality", "100",
                      html_path, image_path))
 
-    message = message.reply_with_photo(image_path, caption=caption)
+    message = message.reply_with_photo(path=image_path, caption=caption)
 
     # Update the database with the new telegram file id and the last time
     # we checked for changes
