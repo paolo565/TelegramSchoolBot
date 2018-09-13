@@ -28,7 +28,7 @@ class Tasks(botogram.components.Component):
         self.config = config
         self.db = db
 
-        self.add_timer(3600, self.run)
+        self.add_timer(1200, self.run)
 
     def query_main_page(self):
         response = requests.get(self.config["school_website"],
